@@ -97,9 +97,9 @@ Note: There is no need to signal that the system is ready.
 
 The following subsections describe the different system states.
 
-The system should start in standby.
+The system should start in state Standby.
 
-If any part of the system is rebooted, the system should go back to standby.
+If any part of the system is rebooted, the system should go back to state Standby.
 
 The system should be able to handle that the Crazyflie shuts down and needs to be rebooted, without having to reboot any other hardware.
 
@@ -112,7 +112,7 @@ When the Crazyflie is on the ground and ready to take off.
 
 Crazypilot should send no commands.
 
-When the user moves the joystick that corresponds to altitude to more than 50 % of positive maximum of the joystick, the system should go into take-off state.
+When the user moves the joystick that corresponds to altitude to more than 50 % of positive maximum of the joystick, the system should go into state Take-off.
 
 ### Take-off
 
@@ -123,7 +123,7 @@ Take-off sequence:
 
 #### State exits
 
-When the Crazyflie is on altitude above 0.35 m, the system should go into flying state.
+When the Crazyflie is on altitude above 0.35 m, the system should go into state Flying.
 
 If data received from the crazyflie is incomplete for more than <crazyflie_outage>, the system should go into state Crazyflie error.
 
@@ -142,20 +142,20 @@ If there is a controller input outage, the crazypilot should keep sending the la
 
 #### State exits
 
-When the Crazyflie is on an altitude below 0.2 m, the system should go into landing state.
+When the Crazyflie is on an altitude below 0.2 m, the system should go into state Landing.
 
-If the all controller input is zero for more than 10 seconds, the system should go into landing state.
+If the all controller input is zero for more than 10 seconds, the system should go into state Landing.
 
 If data received from the crazyflie is incomplete for more than <crazyflie_outage>, the system should go into state Crazyflie error.
 
-If controller input is not received from the bluetooth controller to the raspberry pi for more than 0.5 seconds, the system should go into controller error state
+If controller input is not received from the bluetooth controller to the raspberry pi for more than 0.5 seconds, the system should go into state Controller error
 
 ### Landing
 
 Landing sequence:
 - The crazypilot should command the crazyflie to decrease altitude by 0.1 meters/second, until the altitude is at 0.1 meters. 
 - Send a landing command, if available, and otherwise stop sending commands.
-- Set system to standby state.
+- Set system to state Standby.
 
 #### State exits
 
@@ -167,7 +167,7 @@ The crazypilot should not send any commands.
 
 #### State exits
 
-When all necessary data from the crazyflie is received and it looks okay, the system should go into Standby.
+When all necessary data from the crazyflie is received and it looks okay, the system should go into state Standby.
 
 ### Controller error
 
@@ -175,9 +175,9 @@ The crazypilot should command the crazyflie to stay on the same altitude as the 
 
 #### State exits
 
-After 2.0 s in this state, the system should go to landing state.
+After 2.0 s in this state, the system should go to state Landing.
 
-If the controller input is received, the system should go to flying state.
+If the controller input is received, the system should go to state Flying.
 
 If data received from the crazyflie is incomplete for more than <crazyflie_outage>, the system should go into state Crazyflie error.
 
