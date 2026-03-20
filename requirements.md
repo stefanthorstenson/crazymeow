@@ -16,11 +16,22 @@ Raspberry Pi with a Crazyradio 2.0
 Crazyflie 2.1 with Flow Deck v2
 Bluetooth controller
 
+## System setup
+
+This should be done by an experienced Crazyflie developer.
+
+Manual setup is allowed, for example putting scripts in the correct place and pairing the bluetooth controller. Manual setup should be kept to a minimum.
+Once manual setup is done, it should be possible to power cycle all hardware without having to do manual setup to be able to fly again.
+
+All code will be committed to this repository, and it can therefore be assumed that the first step to set up the system is to clone this repo to the Raspberry Pi.
+
 ## Software
 
 ### Raspberry pi
 
 Note that there may be other software on the raspberry pi, in order to fulfill requirements.
+
+All software in this section are intended to run on the Raspberry Pi with Raspian OS.
 
 #### Crazypilot
 
@@ -32,24 +43,15 @@ It should use the crazyflie-lib-python for flight control.
 
 The URI of the Crazyflie should be hard-coded in the software. Setting up URI should be part of manual setup.
 
-Crazypilot should receive log data from the Crazyflie and write to log files. Log files older than 24 h should be removed.
+Any log files produced that are older than 24 h should be removed.
+
+#### Controller mapping setup
+
+There should be a separate CLI for setting up the controller and the controller mapping according to requirements.
 
 ### Crazyflie
 
 The Crazyflie firmware should be non-modified crazyflie-firmware.
-
-## System setup
-
-This should be done by an experienced Crazyflie developer.
-
-Manual setup is allowed, for example putting scripts in the correct place and pairing the bluetooth controller. Manual setup should be kept to a minimum.
-Once manual setup is done, it should be possible to power cycle all hardware without having to do manual setup to be able to fly again.
-
-All code will be committed to this repository, and it can therefore be assumed that the first step to set up the system is to clone this repo to the Raspberry Pi.
-
-### Controller mapping setup
-
-There should be a separate CLI for setting up the controller and the controller mapping according to requirements.
 
 ## Startup
 
@@ -99,7 +101,7 @@ No code may download from the internet (except installing packages using pip or 
 
 It should be possible to run the crazypilot and the controller setup on a laptop with Ubuntu 24.04 and a Crazyradio 2.0 with minimum manual work.
 
-## Process
+## AI coding process
 
 When user says "implement", the following should also also be done, in sequence:
 
@@ -130,3 +132,5 @@ The documentation should include:
 - Requirements specifications and design specifications for all included software, to be placed in doc/
 
 All guides should be placed in README.md
+
+This file may not be changed by a coding agent. Suggestions can be made, but not directly in the file.
