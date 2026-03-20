@@ -1,5 +1,8 @@
 # TODO - still to be specified
 
+- Behaviour on low battery level
+- Design: What feedback to receive from the drone, and that setting up logging for that is necessary
+
 # CrazyMeow software requirements specification
 
 A toy version of the crazyflie, with a complete hardware setup to be able to fly. The focus of the CrazyMeow is ease of use and safety. A kid should be able to start the hardware and start flying.
@@ -153,7 +156,7 @@ If controller input is not received from the bluetooth controller to the raspber
 ### Landing
 
 Landing sequence:
-- The crazypilot should command the crazyflie to decrease altitude by 0.1 meters/second, until the altitude is at 0.1 meters. 
+- The crazypilot should command the crazyflie to decrease altitude by 0.1 meters/second, until the altitude is at 0.05 meters. 
 - Send a landing command, if available, and otherwise stop sending commands.
 - Set system to state Standby.
 
@@ -247,6 +250,8 @@ Header: Document Info
 | Status | <draft/approved> |
 
 When updating the version, the status must be set to draft.
+
+Document heading should not be numbered.
 
 ## Other
 

@@ -10,7 +10,7 @@
 
 ---
 
-## 1. Overview
+## Overview
 
 System setup helpers is a collection of tools to assist an experienced developer in setting up the system, including cloning repositories, configuring the Crazyflie radio address, verifying connectivity, and enabling debugging access.
 
@@ -18,9 +18,9 @@ Note: A single tool may fulfill more than one requirement.
 
 ---
 
-## 2. Requirements
+## Requirements
 
-### 2.1 General
+### General
 
 | ID | Requirement |
 |---|---|
@@ -29,21 +29,27 @@ Note: A single tool may fulfill more than one requirement.
 | SS-003 | Before each sudo call, the tool shall print a description of what the sudo command will do and wait for user confirmation. |
 | SS-004 | Before each `git clone` call, the tool shall inform the user of the repository to be cloned and prompt for confirmation before proceeding. |
 
-### 2.2 Crazyflie Configuration
+### Crazyflie Configuration
 
 | ID | Requirement |
 |---|---|
 | SS-010 | There shall be a tool to write the radio address to the Crazyflie over USB, equivalent to the "Configure 2.x" functionality in the Crazyflie client. |
-| SS-011 | There shall be a tool to configure the Crazyflie URI to be used by Crazypilot. |
+| SS-011 | There shall be a tool to configure the Crazyflie URI to be used by Crazypilot, stored in `~/.config/crazypilot/crazypilot_config.json`. |
 | SS-012 | There shall be a tool to verify that the configured Crazyflie URI is reachable (test connection). |
 
-### 2.3 Service Setup
+### Dependency Setup
+
+| ID | Requirement |
+|---|---|
+| SS-015 | There shall be a tool to install all software dependencies required by the system, including Python packages and any necessary system packages. |
+
+### Service Setup
 
 | ID | Requirement |
 |---|---|
 | SS-020 | There shall be a tool to set up all services necessary to fulfill the startup requirements (e.g. auto-starting Crazypilot on boot). |
 
-### 2.4 Debugging Setup
+### Debugging Setup
 
 | ID | Requirement |
 |---|---|

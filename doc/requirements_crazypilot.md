@@ -10,15 +10,15 @@
 
 ---
 
-## 1. Overview
+## Overview
 
 Crazypilot is the software running on the Raspberry Pi that reads controller input and sends setpoint commands to the Crazyflie drone.
 
 ---
 
-## 2. Requirements
+## Requirements
 
-### 2.1 General
+### General
 
 | ID | Requirement |
 |---|---|
@@ -26,13 +26,13 @@ Crazypilot is the software running on the Raspberry Pi that reads controller inp
 | CP-001a | Crazypilot shall run on Raspberry Pi with Raspbian OS as its primary target platform. |
 | CP-001b | Crazypilot shall be implemented in Python. |
 | CP-002 | Crazypilot shall use crazyflie-lib-python for all flight control communication. |
-| CP-003 | The URI of the Crazyflie shall be hard-coded in the software. |
+| CP-003 | Crazypilot shall read the Crazyflie URI from `~/.config/crazypilot/crazypilot_config.json`. Info: The URI is set once during manual setup and not changed at runtime. |
 | CP-004 | Crazypilot shall not require super user privileges to run. |
 | CP-005 | Crazypilot shall not download anything from the internet during operation (package installation via pip or apt-get is excluded from this restriction). |
 | CP-006 | The code shall be well modularized and easy to maintain. |
 | CP-007 | It shall be possible to run Crazypilot on a laptop with Ubuntu 24.04 and a Crazyradio 2.0 with minimum manual setup. |
 
-### 2.2 Startup and Connection
+### Startup and Connection
 
 | ID | Requirement |
 |---|---|
@@ -42,13 +42,13 @@ Crazypilot is the software running on the Raspberry Pi that reads controller inp
 | CP-013 | Crazypilot shall be able to connect to the Crazyflie and the Bluetooth controller in any order relative to when Crazypilot starts. |
 | CP-014 | Crazypilot shall resume normal operation if the Crazyflie is rebooted, without requiring any other hardware or software to be restarted. |
 
-### 2.3 Controller Mapping
+### Controller Mapping
 
 | ID | Requirement |
 |---|---|
 | CP-025 | The controller mapping (axis indices and inversion) shall be read from `~/.config/crazypilot/controller_mapping.json` by default, with an optional `--controller-mapping <path>` flag to specify an alternative file path. |
 
-### 2.4 Safety Restrictions
+### Safety Restrictions
 
 | ID | Requirement |
 |---|---|
@@ -56,7 +56,7 @@ Crazypilot is the software running on the Raspberry Pi that reads controller inp
 | CP-031 | Crazypilot shall clamp all velocity setpoints in the xy-plane to a maximum magnitude of 1.0 m/s. |
 | CP-032 | Crazypilot shall clamp all altitude rate setpoints to a maximum magnitude of 0.3 m/s. |
 
-### 2.5 System States
+### System States
 
 | ID | Requirement |
 |---|---|
@@ -64,14 +64,14 @@ Crazypilot is the software running on the Raspberry Pi that reads controller inp
 | CP-061 | Crazypilot shall start in state Standby. |
 | CP-062 | If any part of the system is rebooted, Crazypilot shall transition to state Standby. |
 
-#### 2.5.1 State Standby
+#### State Standby
 
 | ID | Requirement |
 |---|---|
 | CP-063 | In state Standby, Crazypilot shall not send any commands to the Crazyflie. |
 | CP-064 | In state Standby, when the altitude joystick input exceeds 50 % of its positive maximum, Crazypilot shall transition to state Take-off. |
 
-#### 2.5.2 State Take-off
+#### State Take-off
 
 | ID | Requirement |
 |---|---|
@@ -80,7 +80,7 @@ Crazypilot is the software running on the Raspberry Pi that reads controller inp
 | CP-067 | In state Take-off, when the Crazyflie altitude exceeds 0.35 m, Crazypilot shall transition to state Flying. |
 | CP-068 | In state Take-off, if Crazyflie data is incomplete for more than crazyflie_outage (0.5 s), Crazypilot shall transition to state Crazyflie error. |
 
-#### 2.5.3 State Flying
+#### State Flying
 
 | ID | Requirement |
 |---|---|
@@ -95,23 +95,23 @@ Crazypilot is the software running on the Raspberry Pi that reads controller inp
 | CP-072 | In state Flying, if Crazyflie data is incomplete for more than crazyflie_outage (0.5 s), Crazypilot shall transition to state Crazyflie error. |
 | CP-073 | In state Flying, if no controller input is received for more than 0.5 s, Crazypilot shall transition to state Controller error. |
 
-#### 2.5.4 State Landing
+#### State Landing
 
 | ID | Requirement |
 |---|---|
-| CP-074 | In state Landing, Crazypilot shall command the Crazyflie to descend at 0.1 m/s until the altitude is at or below 0.1 m. |
-| CP-075 | Once altitude is at or below 0.1 m in state Landing, Crazypilot shall send a landing command if one is available in the crazyflie-lib-python API, otherwise stop sending commands. |
+| CP-074 | In state Landing, Crazypilot shall command the Crazyflie to descend at 0.1 m/s until the altitude is at or below 0.05 m. |
+| CP-075 | Once altitude is at or below 0.05 m in state Landing, Crazypilot shall stop sending commands. |
 | CP-076 | After the landing sequence completes, Crazypilot shall transition to state Standby. |
 | CP-077 | In state Landing, if Crazyflie data is incomplete for more than crazyflie_outage (0.5 s), Crazypilot shall transition to state Crazyflie error. |
 
-#### 2.5.5 State Crazyflie error
+#### State Crazyflie error
 
 | ID | Requirement |
 |---|---|
 | CP-078 | In state Crazyflie error, Crazypilot shall not send any commands to the Crazyflie. |
 | CP-079 | In state Crazyflie error, when Crazyflie data is received and is complete, Crazypilot shall transition to state Standby. |
 
-#### 2.5.6 State Controller error
+#### State Controller error
 
 | ID | Requirement |
 |---|---|
@@ -120,7 +120,7 @@ Crazypilot is the software running on the Raspberry Pi that reads controller inp
 | CP-082 | In state Controller error, after 2.0 s, Crazypilot shall transition to state Landing. |
 | CP-083 | In state Controller error, if Crazyflie data is incomplete for more than crazyflie_outage (0.5 s), Crazypilot shall transition to state Crazyflie error. |
 
-### 2.6 Logging
+### Logging
 
 | ID | Requirement |
 |---|---|

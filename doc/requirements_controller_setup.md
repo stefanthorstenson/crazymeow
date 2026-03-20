@@ -10,15 +10,15 @@
 
 ---
 
-## 1. Overview
+## Overview
 
 The controller mapping setup CLI is a command-line tool for interactively configuring the Bluetooth controller and mapping its axes to the Crazyflie flight commands used by Crazypilot.
 
 ---
 
-## 2. Requirements
+## Requirements
 
-### 2.1 General
+### General
 
 | ID | Requirement |
 |---|---|
@@ -30,14 +30,14 @@ The controller mapping setup CLI is a command-line tool for interactively config
 | CS-005 | The code shall be well modularized and easy to maintain. |
 | CS-006 | It shall be possible to run the CLI on a laptop with Ubuntu 24.04 and a Crazyradio 2.0 with minimum manual setup. |
 
-### 2.2 Controller Detection
+### Controller Detection
 
 | ID | Requirement |
 |---|---|
 | CS-010 | The CLI shall detect all connected Bluetooth game controllers and allow the user to select which one to configure. |
 | CS-011 | The CLI shall display a human-readable name for each detected controller. |
 
-### 2.3 Axis Mapping
+### Axis Mapping
 
 | ID | Requirement |
 |---|---|
@@ -46,14 +46,14 @@ The controller mapping setup CLI is a command-line tool for interactively config
 | CS-022 | The CLI shall detect and record the correct polarity (inversion) for each axis, based on the direction the user moves the joystick during the mapping procedure. |
 | CS-023 | The CLI shall display live axis values during mapping so the user can verify the mapping is correct. |
 
-### 2.4 Configuration Persistence
+### Configuration Persistence
 
 | ID | Requirement |
 |---|---|
 | CS-030 | The completed mapping shall be saved to `~/.config/crazypilot/controller_mapping.json`, formatted as pretty-printed JSON (indented, one key per line). |
 | CS-032 | If a configuration file already exists, the CLI shall inform the user and ask for confirmation before overwriting it. |
 
-### 2.5 Verification
+### Verification
 
 | ID | Requirement |
 |---|---|
