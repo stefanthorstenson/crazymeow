@@ -6,7 +6,7 @@
 |---|---|
 | Software | Crazypilot |
 | Version | 1.0 |
-| Status | Draft — awaiting approval |
+| Status | Approved |
 
 ---
 

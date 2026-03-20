@@ -6,7 +6,7 @@
 |---|---|
 | Software | Controller Mapping Setup CLI |
 | Version | 1.0 |
-| Status | Draft — awaiting approval |
+| Status | Approved |
 
 ---
 
@@ -50,8 +50,7 @@ The controller mapping setup CLI is a command-line tool for interactively config
 
 | ID | Requirement |
 |---|---|
-| CS-030 | The completed mapping shall be saved to `~/.config/crazypilot/controller_mapping.json`. |
-| CS-031 | The configuration file format shall be human-readable (e.g. JSON or YAML). |
+| CS-030 | The completed mapping shall be saved to `~/.config/crazypilot/controller_mapping.json`, formatted as pretty-printed JSON (indented, one key per line). |
 | CS-032 | If a configuration file already exists, the CLI shall inform the user and ask for confirmation before overwriting it. |
 
 ### 2.5 Verification

@@ -2,13 +2,23 @@
 
 - Define take-off sequence.
 
-# CrazyPie
+# CrazyMeow software requirements specification
 
-A toy version of the crazyflie, with a complete hardware setup to be able to fly. The focus of the CrazyPie is ease of use and safety. A kid should be able to start the hardware and start flying.
+A toy version of the crazyflie, with a complete hardware setup to be able to fly. The focus of the CrazyMeow is ease of use and safety. A kid should be able to start the hardware and start flying.
 
-## Terminology
+## Document Info
+
+| Field | Value |
+|---|---|
+| Version | 1.0 |
+
+## Definitions
 
 The system: All hardware parts and software parts, working together.
+
+Software: All software components on the Raspberry Pi
+
+Component: Highest level of software on Raspberry Pi, as an isolated piece of software.
 
 ## Hardware
 
@@ -27,13 +37,17 @@ All code will be committed to this repository, and it can therefore be assumed t
 
 ## Software
 
-### Raspberry pi
+Overview of components:
 
-Note that there may be other software on the raspberry pi, in order to fulfill requirements.
+- Crazypilot
+- Controller mapping setup
+- System setup helpers
 
-All software in this section are intended to run on the Raspberry Pi with Raspian OS.
+All components will be on the Raspberry Pi
 
-#### Crazypilot
+All components in this section are intended to run on the Raspberry Pi with Raspian OS.
+
+### Crazypilot
 
 The software that sends setpoint commands to the Crazyflie is called crazypilot.
 
@@ -45,13 +59,33 @@ The URI of the Crazyflie should be hard-coded in the software. Setting up URI sh
 
 Any log files produced that are older than 24 h should be removed.
 
-#### Controller mapping setup
+### Controller mapping setup
 
 There should be a separate CLI for setting up the controller and the controller mapping according to requirements.
 
-### Crazyflie
+### System setup helpers
 
-The Crazyflie firmware should be non-modified crazyflie-firmware.
+This is a collection of tools to help set up the system. E.g. scripts to clone git repositories, setting up debugging and setting URI of Crazyflie.
+
+These tools may use sudo calls. Before each sudo call, information should be printed to the user containing what the command using sudo will do.
+
+These tools may use git clone. Before each git clone call, the user should be informed about what to clone and prompted for approval.
+
+There should be a tool to:
+- Write the radio address of the Crazyflie to the Crazyflie hardware, similar to the "Configure 2.x" in the Crazyflie client, which uses USB.
+- Configure the URI of the Crazyflie to be used by Crazypilot
+
+There should be a way to verify that the specified URI of the Crazyflie is correct. (Test connection).
+
+There should be a tool to setup all services necessary to fulfill startup requirements.
+
+Note: A tool may fulfill more than one requirement.
+
+### External software components
+
+- [Crazyflie firmware](https://github.com/bitcraze/crazyflie-firmware)
+- [Crazyflie Python lib](https://github.com/bitcraze/crazyflie-lib-python/)
+- [Crazyradio firmware](https://github.com/bitcraze/crazyradio-firmware)
 
 ## Startup
 
@@ -59,7 +93,7 @@ It should be possible to power on the raspberry pi, crazyflie and bluetooth cont
 
 When all parts are powered on, the system should be able to fly.
 
-There is no need to signal that the system is ready.
+Note: There is no need to signal that the system is ready.
 
 ## Flying
 
@@ -95,7 +129,7 @@ Maximum speed in the xy-plane should be 1.0 meters/second.
 
 The code should be well modularized and easy to maintain.
 
-No code may run code that needs super user priveleges.
+No code may run code that needs super user (sudo) priveleges.
 
 No code may download from the internet (except installing packages using pip or apt-get).
 
@@ -105,14 +139,15 @@ It should be possible to run the crazypilot and the controller setup on a laptop
 
 When user says "implement", the following should also also be done, in sequence:
 
-- Requirements specification for each software should be created, with unique IDs for each requirement. Changes or new documents need approval from user before continuing to next step.
-- Design specification for each software should be created, based on the requirements document. Changes or new documents need approval from user before continuing to next step.
+- Requirements specification for each software should be created, with unique IDs for each requirement. Changes or new documents need approval from user before continuing to next step, and the version must match the software specification (this document).
+- Design specification for each software should be created, based on the requirements document. Changes or new documents need approval from user before continuing to next step, and the version must match the software specification (this document).
 - Implementation of software according to specifications.
 - Each software should be tested against its requirements document. Output:
     Test reports (Pass, fail, cannot be tested)
     Test coverage statistics to requirements
 
-Exceptions for testing:
+### Exceptions for testing
+
 - Process requirements
 - Design and architecture requirements
 - Documentation requirements
@@ -132,5 +167,17 @@ The documentation should include:
 - Requirements specifications and design specifications for all included software, to be placed in doc/
 
 All guides should be placed in README.md
+
+Requirements specifications and design specifications should have this information in the beginning:
+
+Header: Document Info
+
+| Field | Value |
+|---|---|
+| Software | <Software component name> |
+| Version | <version number which corresponds to software specification> |
+| Status | <draft/approved> |
+
+## Other
 
 This file may not be changed by a coding agent. Suggestions can be made, but not directly in the file.
