@@ -8,7 +8,7 @@ A toy version of the crazyflie, with a complete hardware setup to be able to fly
 
 | Field | Value |
 |---|---|
-| Version | 1.0 |
+| Version | 1.1 |
 
 ## Definitions
 
@@ -245,6 +245,8 @@ Header: Document Info
 | Software | <Software component name> |
 | Version | <version number which corresponds to software specification> |
 | Status | <draft/approved> |
+
+When updating the version, the status must be set to draft.
 
 ## Other
 
