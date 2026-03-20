@@ -1,7 +1,5 @@
 # TODO - still to be specified
 
-- Define take-off sequence.
-
 # CrazyMeow software requirements specification
 
 A toy version of the crazyflie, with a complete hardware setup to be able to fly. The focus of the CrazyMeow is ease of use and safety. A kid should be able to start the hardware and start flying.
@@ -95,7 +93,41 @@ When all parts are powered on, the system should be able to fly.
 
 Note: There is no need to signal that the system is ready.
 
-## Flying
+## System states
+
+The following subsections describe the different system states.
+
+The system should start in standby.
+
+If any part of the system is rebooted, the system should go back to standby.
+
+The system should be able to handle that the Crazyflie shuts down and needs to be rebooted, without having to reboot any other hardware.
+
+Parameters:
+<crazyflie_outage> = 0.5 seconds
+
+### Standby
+
+When the Crazyflie is on the ground and ready to take off.
+
+Crazypilot should send no commands.
+
+When the user moves the joystick that corresponds to altitude to more than 50 % of positive maximum of the joystick, the system should go into take-off state.
+
+### Take-off
+
+During the take-off sequence, no controller input should affect the Crazyflie.
+
+Take-off sequence:
+- Crazypilot should commanded to go to altitude 0.4 m with 75 % of maximum allowed altitude rate. No movement in xy plane.
+
+#### State exits
+
+When the Crazyflie is on altitude above 0.35 m, the system should go into flying state.
+
+If data received from the crazyflie is incomplete for more than <crazyflie_outage>, the system should go into state Crazyflie error.
+
+### Flying
 
 The crazyflie should be controlled using the hover-assist mode (as in the Crazyflie client)
 
@@ -106,14 +138,48 @@ This is how the controller should control the crazyflie:
 - Right joystick up-down: Speed in x-direction (crazyflie body coordinate system), up in positive x direction (linear, 5 % deadzone, max +-1.0 meters/second)
 - Right joystick left-right: Speed in y-direction (crazyflie body coordinate system), right should move the crazyflie to the right if the crazyflie is facing away from the pilot (x axis pointing away from the pilot) (linear, 5 % deadzone, max +-1.0 meters/second)
 
-## Error handling
+If there is a controller input outage, the crazypilot should keep sending the last command sent to the Crazyflie.
 
-If controller input is not received from the bluetooth controller to the raspberry pi, the following behaviour should be met:
+#### State exits
 
-- After 0.5 s of outage, the crazypilot should command the crazyflie to stay on the same altitude as the last received command, with 0 velocity.
-- After 2.0 s of outage, the crazypilot should command the crazyflie to decrease altitude by 0.1 meters/second, until the altitude is at 0.15 meters. Then it should send a landing command, if available, and otherwise stop sending commands.
+When the Crazyflie is on an altitude below 0.2 m, the system should go into landing state.
 
-The system should be able to handle that the Crazyflie shuts down and needs to be rebooted, without having to reboot any other hardware.
+If the all controller input is zero for more than 10 seconds, the system should go into landing state.
+
+If data received from the crazyflie is incomplete for more than <crazyflie_outage>, the system should go into state Crazyflie error.
+
+If controller input is not received from the bluetooth controller to the raspberry pi for more than 0.5 seconds, the system should go into controller error state
+
+### Landing
+
+Landing sequence:
+- The crazypilot should command the crazyflie to decrease altitude by 0.1 meters/second, until the altitude is at 0.1 meters. 
+- Send a landing command, if available, and otherwise stop sending commands.
+- Set system to standby state.
+
+#### State exits
+
+If data received from the crazyflie is incomplete for more than <crazyflie_outage>, the system should go into state Crazyflie error.
+
+### Crazyflie error
+
+The crazypilot should not send any commands.
+
+#### State exits
+
+When all necessary data from the crazyflie is received and it looks okay, the system should go into Standby.
+
+### Controller error
+
+The crazypilot should command the crazyflie to stay on the same altitude as the last received command, with 0 velocity.
+
+#### State exits
+
+After 2.0 s in this state, the system should go to landing state.
+
+If the controller input is received, the system should go to flying state.
+
+If data received from the crazyflie is incomplete for more than <crazyflie_outage>, the system should go into state Crazyflie error.
 
 ## Debugging
 
@@ -124,6 +190,8 @@ It should be possible to connect to the Raspberry Pi via SSH. Setup may be part 
 The crazyflie should only fly on an altitude below 1.2 meters.
 
 Maximum speed in the xy-plane should be 1.0 meters/second.
+
+Maximum speed in the z-direction (altitude rate) should be 0.3 meters/second.
 
 ## Architecture and design requirements
 
@@ -180,4 +248,4 @@ Header: Document Info
 
 ## Other
 
-This file may not be changed by a coding agent. Suggestions can be made, but not directly in the file.
+This file may not be changed by a coding agent, unless specificly asked to. Suggestions can always be made, but not directly in the file.
