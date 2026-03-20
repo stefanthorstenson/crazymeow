@@ -103,8 +103,16 @@ It should be possible to run the crazypilot and the controller setup on a laptop
 
 At implementation of the system with this requirements specification, the following should also also be done:
 
-- Each software should have its own requirements document.
-- Each software should be tested against its requirements document. Test reports should be generated.
+- Requirements specification for each software should be created, with unique IDs for each requirement.
+- Design specification for each software should be created, based on the requirements document.
+- Each software should be tested against its requirements document. Output:
+    Test reports (Pass, fail, cannot be tested)
+    Test coverage statistics to requirements
+
+Exceptions for testing:
+- Process requirements
+- Design and architecture requirements
+- Documentation requirements
 
 ## Documentation
 
@@ -118,3 +126,5 @@ The documentation should include:
 - Guide for how to start flying
 - Guide to debug
     - Path to log files
+
+All guides should be placed in README.md
