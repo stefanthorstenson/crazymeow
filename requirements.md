@@ -1,7 +1,6 @@
 # TODO - still to be specified
 
 - Behaviour on low battery level
-- Design: What feedback to receive from the drone, and that setting up logging for that is necessary
 
 # CrazyMeow software requirements specification
 
@@ -11,7 +10,7 @@ A toy version of the crazyflie, with a complete hardware setup to be able to fly
 
 | Field | Value |
 |---|---|
-| Version | 1.1 |
+| Version | 1.2 |
 
 ## Definitions
 
@@ -20,6 +19,15 @@ The system: All hardware parts and software parts, working together.
 Software: All software components on the Raspberry Pi
 
 Component: Highest level of software on Raspberry Pi, as an isolated piece of software.
+
+## Parameters
+
+<deadzone> = 5 %
+<crazyflie_outage> = 0.5 seconds
+<maximum_altitude_rate> = +-0.3 meters/second
+<maximum_yaw_rate> = +-45 degrees/second
+<maximum_speed_in_xy_plane> = +-1.0 meters/second
+<maximum_altitude> = 1.2 meters
 
 ## Hardware
 
@@ -106,9 +114,6 @@ If any part of the system is rebooted, the system should go back to state Standb
 
 The system should be able to handle that the Crazyflie shuts down and needs to be rebooted, without having to reboot any other hardware.
 
-Parameters:
-<crazyflie_outage> = 0.5 seconds
-
 ### Standby
 
 When the Crazyflie is on the ground and ready to take off.
@@ -136,12 +141,16 @@ The crazyflie should be controlled using the hover-assist mode (as in the Crazyf
 
 This is how the controller should control the crazyflie:
 
-- Left joystick up-down: Altitude rate (linear, 5 % deadzone, max +-0.3 meters/second)
-- Left joystick left-right: Yaw rate (linear, 5 % deadzone, max +-45 degrees/second)
-- Right joystick up-down: Speed in x-direction (crazyflie body coordinate system), up in positive x direction (linear, 5 % deadzone, max +-1.0 meters/second)
-- Right joystick left-right: Speed in y-direction (crazyflie body coordinate system), right should move the crazyflie to the right if the crazyflie is facing away from the pilot (x axis pointing away from the pilot) (linear, 5 % deadzone, max +-1.0 meters/second)
+- Left joystick up-down: Altitude rate (linear, <deadzone> deadzone, max <maximum_altitude_rate>)
+- Left joystick left-right: Yaw rate (linear, <deadzone> deadzone, max <maximum_yaw_rate>)
+- Right joystick up-down: Speed in x-direction (crazyflie body coordinate system), up in positive x direction (linear, <deadzone> deadzone, max <maximum_speed_in_xy_plane>)
+- Right joystick left-right: Speed in y-direction (crazyflie body coordinate system), right should move the crazyflie to the right if the crazyflie is facing away from the pilot (x axis pointing away from the pilot) (linear, <deadzone> deadzone, max <maximum_speed_in_xy_plane>)
 
 If there is a controller input outage, the crazypilot should keep sending the last command sent to the Crazyflie.
+
+The commanded speed in xy plane shall be less than <maximum_speed_in_xy_plane>
+
+Maximum commanded altitude is <maximum_altitude>.
 
 #### State exits
 
@@ -188,13 +197,11 @@ If data received from the crazyflie is incomplete for more than <crazyflie_outag
 
 It should be possible to connect to the Raspberry Pi via SSH. Setup may be part of manual setup.
 
-### Restrictions
+## Safety
 
-The crazyflie should only fly on an altitude below 1.2 meters.
+If the Crazyflie's reported altitude is greater than <maximum_altitude> + 0.3 meters for more than 1 second, the system should go into state Landing.
 
-Maximum speed in the xy-plane should be 1.0 meters/second.
-
-Maximum speed in the z-direction (altitude rate) should be 0.3 meters/second.
+If the Crazyflie's reported speed in the xy plane is greater than <maximum_speed_in_xy_plane> + 0.2 meters/seconds for more than 1 second, the system should go into state Landing.
 
 ## Architecture and design requirements
 

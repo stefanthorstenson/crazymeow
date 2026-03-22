@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Software | Crazypilot |
-| Version | 1.1 |
+| Version | 1.2 |
 | Status | Approved |
 
 ---
@@ -48,13 +48,15 @@ Crazypilot is the software running on the Raspberry Pi that reads controller inp
 |---|---|
 | CP-025 | The controller mapping (axis indices and inversion) shall be read from `~/.config/crazypilot/controller_mapping.json` by default, with an optional `--controller-mapping <path>` flag to specify an alternative file path. |
 
-### Safety Restrictions
+### Safety
 
 | ID | Requirement |
 |---|---|
 | CP-030 | Crazypilot shall clamp all altitude rate setpoints so that the Crazyflie cannot exceed an altitude of 1.2 m. |
 | CP-031 | Crazypilot shall clamp all velocity setpoints in the xy-plane to a maximum magnitude of 1.0 m/s. |
 | CP-032 | Crazypilot shall clamp all altitude rate setpoints to a maximum magnitude of 0.3 m/s. |
+| CP-033 | If the Crazyflie's reported altitude exceeds 1.5 m (maximum_altitude + 0.3 m) for more than 1 second, Crazypilot shall transition to state Landing. |
+| CP-034 | If the Crazyflie's reported speed in the xy plane exceeds 1.2 m/s (maximum_speed_in_xy_plane + 0.2 m/s) for more than 1 second, Crazypilot shall transition to state Landing. |
 
 ### System States
 
