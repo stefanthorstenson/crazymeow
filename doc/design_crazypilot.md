@@ -102,6 +102,7 @@ crazymeow/
 - Track timeouts (controller outage 0.5 s, all-zero input 10 s, controller error auto-land 2.0 s, crazyflie outage 0.5 s) using monotonic timestamps.
 - Monitor reported altitude and xy speed each tick for safety violations: if altitude > 1.5 m or xy speed > 1.2 m/s, start a 1 s violation timer; reset the timer if the condition clears; transition to Landing if the timer expires.
 - Monitor battery state (pm.state) each tick: in Standby, only allow transition to TakeOff if pm.state ≠ 3 (not low-power); in TakeOff and Flying, transition to Landing if pm.state == 3 (low-power). Using the firmware's pm.state rather than a raw voltage threshold avoids false triggers from momentary voltage sag during motor spin-up.
+- In Standby, send a stop setpoint every 200 ms (tracked via a monotonic timestamp `_last_standby_stop_time`) to keep the Crazyflie firmware watchdog alive. The watchdog fires at 500 ms (warning) and 2000 ms (ExceptFreeFall lock). Without this keepalive the drone cannot re-arm for a second takeoff.
 - Emit a periodic log entry at approximately 1 Hz (tracked via a monotonic timestamp, not a separate thread). Each entry contains: current state, altitude, battery voltage, battery state (pm.state), raw altitude axis value, and time since last controller event in milliseconds (or `None` if no event received yet).
 - In state Standby, track the rising edge of the altitude axis threshold (50 % positive max): when the axis crosses from below to above the threshold and the takeoff condition is not met, log the blocking reason once (battery too low, or no battery reading). Reset the edge-detect flag when the axis drops back below threshold.
 - When transitioning to state Landing, log the reason. The `_transition` method accepts an optional `reason: str` parameter; when the new state is `Landing` and a reason is provided it is appended to the transition log message.
@@ -271,7 +272,7 @@ All setpoints are sent via `cf.commander.send_hover_setpoint(vx, vy, yawrate, zd
 
 | State | Command each tick |
 |---|---|
-| Standby | none |
+| Standby | `send_stop()` every 200 ms (watchdog keepalive only) |
 | Take-off | `send_hover_setpoint(0, 0, 0, z_target)` — z_target increments at 75 % × 0.3 m/s |
 | Flying | `send_hover_setpoint(vx, vy, yaw_rate, z_target)` — z_target integrated from joystick |
 | Landing | `send_hover_setpoint(0, 0, 0, z_target)` — z_target decrements at 0.1 m/s; `send_stop()` when z_target ≤ 0.05 m |

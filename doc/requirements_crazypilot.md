@@ -78,7 +78,8 @@ Crazypilot is the software running on the Raspberry Pi that reads controller inp
 
 | ID | Requirement |
 |---|---|
-| CP-063 | In state Standby, Crazypilot shall not send any commands to the Crazyflie. |
+| CP-063 | In state Standby, Crazypilot shall not send any flight commands to the Crazyflie. |
+| CP-063b | In state Standby, Crazypilot shall send a stop setpoint every 200 ms to prevent the Crazyflie firmware watchdog from expiring. |
 | CP-064 | In state Standby, when the altitude joystick input exceeds 50 % of its positive maximum and the Crazyflie battery is not in low-power state (pm.state ≠ 3), Crazypilot shall transition to state Take-off. |
 
 #### State Take-off

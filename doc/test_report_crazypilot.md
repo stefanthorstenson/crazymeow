@@ -48,7 +48,8 @@
 | CP-060 | All required system states implemented | Pass |
 | CP-061 | Starts in state Initializing | Pass |
 | CP-062 | Transitions to Initializing if any part of system rebooted | Cannot be tested |
-| CP-063 | In Standby, no commands sent to Crazyflie | Pass |
+| CP-063 | In Standby, no flight commands (hover setpoints) sent to Crazyflie | Pass |
+| CP-063b | In Standby, stop setpoint sent every 200 ms as watchdog keepalive | Pass |
 | CP-064 | In Standby, altitude joystick > 50% and battery not in low-power state triggers Take-off | Pass |
 | CP-065 | In Take-off, no controller input affects the Crazyflie | Pass |
 | CP-066 | In Take-off, climb to 0.4 m at 75% of max altitude rate, no xy movement | Pass |
@@ -74,8 +75,8 @@
 | CP-086 | In Initializing, CF data ok, controller connected, and battery state 0 triggers Standby | Pass |
 
 ## Coverage
-- Total requirements: 64
-- Pass: 47
+- Total requirements: 65
+- Pass: 48
 - Fail: 0
 - Cannot be tested: 17
 - Coverage (Pass / (Pass + Fail)): 100%

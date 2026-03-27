@@ -63,6 +63,7 @@ class StateMachine:
         self._controller_error_start = None
         self._last_periodic_log_time = None
         self._alt_above_threshold_prev = False
+        self._last_standby_stop_time = None
 
     def run(self):
         self._running = True
@@ -153,6 +154,11 @@ class StateMachine:
             self._transition(State.Standby)
 
     def _handle_standby(self, raw_axes, pm_state):
+        now = time.monotonic()
+        if self._last_standby_stop_time is None or (now - self._last_standby_stop_time) >= 0.2:
+            self._cf.send_stop()
+            self._last_standby_stop_time = now
+
         raw_alt = self._mapper.get_raw_altitude_input(raw_axes)
         above = raw_alt > _ALTITUDE_AXIS_TAKEOFF_THRESHOLD
         if above:

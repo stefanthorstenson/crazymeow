@@ -438,13 +438,12 @@ def test_CP_086_initializing_stays_if_battery_not_normal():
 # State Standby
 # ---------------------------------------------------------------------------
 
-def test_CP_063_standby_sends_no_commands():
-    """In state Standby, no commands shall be sent."""
+def test_CP_063_standby_sends_no_flight_commands():
+    """In state Standby, no flight commands (hover setpoints) shall be sent."""
     from crazypilot.state_machine import StateMachine, State
     from crazypilot.joystick_mapper import JoystickMapper
 
     mapper = JoystickMapper(_make_mapping())
-    # Altitude axis at zero — stays in standby
     axes = {0: 0.0, 1: 0.0, 2: 0.0, 3: 0.0}
     cf = _make_cf_mock()
     ctrl = _make_ctrl_mock(axes=axes, last_event=time.monotonic())
@@ -455,7 +454,33 @@ def test_CP_063_standby_sends_no_commands():
     sm._tick()
 
     cf.send_hover_setpoint.assert_not_called()
-    cf.send_stop.assert_not_called()
+
+
+def test_CP_063b_standby_sends_stop_setpoint_every_200ms():
+    """In state Standby, a stop setpoint shall be sent every 200 ms."""
+    from crazypilot.state_machine import StateMachine, State
+    from crazypilot.joystick_mapper import JoystickMapper
+
+    mapper = JoystickMapper(_make_mapping())
+    axes = {0: 0.0, 1: 0.0, 2: 0.0, 3: 0.0}
+    cf = _make_cf_mock()
+    ctrl = _make_ctrl_mock(axes=axes, last_event=time.monotonic())
+
+    sm = StateMachine(cf, ctrl, mapper, config={})
+    sm._state = State.Standby
+
+    # First call — should send stop immediately
+    sm._handle_standby(axes, pm_state=0)
+    assert cf.send_stop.call_count == 1
+
+    # Second call immediately after — should NOT send again
+    sm._handle_standby(axes, pm_state=0)
+    assert cf.send_stop.call_count == 1
+
+    # Simulate 200ms elapsed — should send again
+    sm._last_standby_stop_time -= 0.2
+    sm._handle_standby(axes, pm_state=0)
+    assert cf.send_stop.call_count == 2
 
 
 def test_CP_064_standby_to_takeoff_on_altitude_input_and_battery():
