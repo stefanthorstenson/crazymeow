@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Software | Crazypilot |
-| Version | 1.4 |
+| Version | 1.5 |
 | Status | Approved |
 
 ---
@@ -72,7 +72,7 @@ Crazypilot is the software running on the Raspberry Pi that reads controller inp
 | ID | Requirement |
 |---|---|
 | CP-085 | In state Initializing, Crazypilot shall not send any commands to the Crazyflie. |
-| CP-086 | In state Initializing, when Crazyflie telemetry is being received and the Bluetooth controller is connected, Crazypilot shall transition to state Standby. |
+| CP-086 | In state Initializing, when Crazyflie telemetry is being received, the Bluetooth controller is connected, and the battery state is 0 (normal), Crazypilot shall transition to state Standby. |
 
 #### State Standby
 

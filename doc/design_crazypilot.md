@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Software | Crazypilot |
-| Version | 1.4 |
+| Version | 1.5 |
 | Status | Approved |
 
 ---
@@ -109,7 +109,7 @@ crazymeow/
 **State transition summary:**
 
 ```
-Initializing  → Standby         : CF data OK  AND  controller connected
+Initializing  → Standby         : CF data OK  AND  controller connected  AND  pm.state == 0
 Standby       → TakeOff         : altitude axis > 50 % positive max  AND  pm.state ≠ 3
 TakeOff       → Flying          : altitude > 0.35 m
 TakeOff       → CrazyflieError  : CF data gap > 0.5 s

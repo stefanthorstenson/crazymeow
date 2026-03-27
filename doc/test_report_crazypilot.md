@@ -4,7 +4,7 @@
 | Field | Value |
 |---|---|
 | Software | Crazypilot |
-| Version | 1.4 |
+| Version | 1.5 |
 | Status | Approved |
 
 ## Results
@@ -71,11 +71,11 @@
 | CP-083 | In Controller error, if CF data incomplete, transition to Crazyflie error | Pass |
 | CP-084 | In Flying, battery in low-power state (pm.state == 3) triggers Landing | Pass |
 | CP-085 | In Initializing, no commands sent to Crazyflie | Pass |
-| CP-086 | In Initializing, CF data ok and controller connected triggers Standby | Pass |
+| CP-086 | In Initializing, CF data ok, controller connected, and battery state 0 triggers Standby | Pass |
 
 ## Coverage
-- Total requirements: 63
-- Pass: 46
+- Total requirements: 64
+- Pass: 47
 - Fail: 0
 - Cannot be tested: 17
 - Coverage (Pass / (Pass + Fail)): 100%

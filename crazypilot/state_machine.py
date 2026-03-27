@@ -147,7 +147,9 @@ class StateMachine:
         controller_connected = (
             last_event is not None and (now - last_event) <= _CONTROLLER_OUTAGE_TIMEOUT
         )
-        if data_ok and controller_connected:
+        pm_state = self._cf.get_battery_state()
+        battery_normal = pm_state == 0
+        if data_ok and controller_connected and battery_normal:
             self._transition(State.Standby)
 
     def _handle_standby(self, raw_axes, pm_state):

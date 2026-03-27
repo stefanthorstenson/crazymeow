@@ -11,7 +11,7 @@ A toy version of the crazyflie, with a complete hardware setup to be able to fly
 
 | Field | Value |
 |---|---|
-| Version | 1.4 |
+| Version | 1.5 |
 
 ## Definitions
 
@@ -143,7 +143,7 @@ When
 
 - all needed telemetry is received from the Crazyflie to the Raspberry Pi, and
 - the Raspberry Pi is connected to the controller, and
-- battery state is 0 (normal)
+- battery state is 0 (normal) (this means the Crazyflie is not plugged into a charger, and battery level is good)
 
 the system shall go to state Standby.
 

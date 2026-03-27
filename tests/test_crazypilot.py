@@ -419,6 +419,21 @@ def test_CP_086_initializing_stays_if_no_data():
     assert sm._state == State.Initializing
 
 
+def test_CP_086_initializing_stays_if_battery_not_normal():
+    """In state Initializing, if battery state is not 0 (normal), stay in Initializing."""
+    from crazypilot.state_machine import StateMachine, State
+    from crazypilot.joystick_mapper import JoystickMapper
+
+    mapper = JoystickMapper(_make_mapping())
+    now = time.monotonic()
+    cf = _make_cf_mock(data_ok=True, pm_state=3)  # low-power
+    ctrl = _make_ctrl_mock(last_event=now)
+
+    sm = StateMachine(cf, ctrl, mapper, config={})
+    sm._handle_initializing(True, now, now)
+    assert sm._state == State.Initializing
+
+
 # ---------------------------------------------------------------------------
 # State Standby
 # ---------------------------------------------------------------------------
