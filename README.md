@@ -33,7 +33,9 @@ cd ~/crazymeow
 python3 scripts/setup_dependencies.py
 ```
 
-This installs required system packages, creates a Python virtual environment at `.venv/` inside the repository, and installs all Python dependencies and the crazymeow package into it. Each `sudo` call prompts for confirmation before executing.
+This installs required system packages, creates a Python virtual environment at `.venv/` inside the repository, installs all Python dependencies and the crazymeow package into it, and installs udev rules for USB access to the Crazyflie and Crazyradio. Each `sudo` call prompts for confirmation before executing.
+
+> **Note:** The script adds your user to the `plugdev` group. This change takes effect on the next login. Log out and back in (or reboot) before proceeding with USB steps.
 
 ### 4. Enable SSH (if not done during OS setup)
 

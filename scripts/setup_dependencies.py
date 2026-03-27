@@ -12,6 +12,8 @@ _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _REQUIREMENTS_TXT = os.path.join(_REPO_ROOT, "requirements.txt")
 _VENV_DIR = os.path.join(_REPO_ROOT, ".venv")
 _VENV_PYTHON = os.path.join(_VENV_DIR, "bin", "python")
+_UDEV_RULES_SRC = os.path.join(_REPO_ROOT, "scripts", "99-bitcraze.rules")
+_UDEV_RULES_DST = "/etc/udev/rules.d/99-bitcraze.rules"
 
 _SYSTEM_PACKAGES = [
     "python3-venv",
@@ -28,6 +30,25 @@ def main():
     run_sudo(
         ["sudo", "apt-get", "install", "-y"] + _SYSTEM_PACKAGES,
         f"Install system packages: {', '.join(_SYSTEM_PACKAGES)}",
+    )
+
+    # Install udev rules for Bitcraze USB devices
+    print("\nInstalling udev rules for Bitcraze USB devices...")
+    run_sudo(
+        ["sudo", "cp", _UDEV_RULES_SRC, _UDEV_RULES_DST],
+        f"Copy udev rules to {_UDEV_RULES_DST} (allows non-root USB access to Crazyflie and Crazyradio)",
+    )
+    run_sudo(
+        ["sudo", "udevadm", "control", "--reload-rules"],
+        "Reload udev rules",
+    )
+    run_sudo(
+        ["sudo", "udevadm", "trigger"],
+        "Apply udev rules to currently connected devices",
+    )
+    run_sudo(
+        ["sudo", "usermod", "-aG", "plugdev", os.environ.get("SUDO_USER", os.environ["USER"])],
+        "Add current user to plugdev group (required for USB access without sudo)",
     )
 
     # Create virtual environment
