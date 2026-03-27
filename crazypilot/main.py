@@ -21,9 +21,14 @@ def main():
         metavar="PATH",
         help="Path to controller_mapping.json (default: %(default)s)",
     )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Print all log output to stdout",
+    )
     args = parser.parse_args()
 
-    logger = setup_logging()
+    logger = setup_logging(debug=args.debug)
     logger.info("Crazypilot starting up")
 
     try:

@@ -19,6 +19,7 @@ class CrazyflieInterface:
         self._vx = None
         self._vy = None
         self._vbat = None
+        self._pm_state = None
         self._last_data_time = None
         self._connected = False
         self._running = False
@@ -60,6 +61,10 @@ class CrazyflieInterface:
     def get_battery_voltage(self):
         with self._lock:
             return self._vbat
+
+    def get_battery_state(self):
+        with self._lock:
+            return self._pm_state
 
     def send_hover_setpoint(self, vx: float, vy: float, yaw_rate: float, z_target: float):
         cf = self._cf
@@ -104,6 +109,7 @@ class CrazyflieInterface:
         log_config.add_variable("stateEstimate.vx", "float")
         log_config.add_variable("stateEstimate.vy", "float")
         log_config.add_variable("pm.vbat", "float")
+        log_config.add_variable("pm.state", "int8")
 
         self._log_config = log_config
         try:
@@ -142,4 +148,5 @@ class CrazyflieInterface:
             self._vx = data.get("stateEstimate.vx")
             self._vy = data.get("stateEstimate.vy")
             self._vbat = data.get("pm.vbat")
+            self._pm_state = data.get("pm.state")
             self._last_data_time = time.monotonic()

@@ -13,8 +13,7 @@ _CONTROLLER_OUTAGE_TIMEOUT = 0.5
 _ALL_ZERO_TIMEOUT = 10.0
 _CONTROLLER_ERROR_LAND_TIMEOUT = 2.0
 
-_BATTERY_TAKEOFF_MIN = 3.5     # V
-_BATTERY_LANDING_THRESHOLD = 3.35  # V
+_PM_STATE_LOW_POWER = 3
 
 _TAKEOFF_ALT_THRESHOLD = 0.35  # m — transition TakeOff → Flying
 _LANDING_ALT_THRESHOLD = 0.2   # m — trigger Landing from Flying
@@ -62,6 +61,8 @@ class StateMachine:
         self._safety_violation_start = None
         self._all_zero_start = None
         self._controller_error_start = None
+        self._last_periodic_log_time = None
+        self._alt_above_threshold_prev = False
 
     def run(self):
         self._running = True
@@ -86,19 +87,22 @@ class StateMachine:
         altitude = self._cf.get_altitude()
         xy_speed = self._cf.get_xy_speed()
         battery = self._cf.get_battery_voltage()
+        pm_state = self._cf.get_battery_state()
         now = time.monotonic()
+
+        self._emit_periodic_log(raw_axes, altitude, battery, pm_state, last_event, now)
 
         if state == State.Initializing:
             self._handle_initializing(data_ok, last_event, now)
 
         elif state == State.Standby:
-            self._handle_standby(raw_axes, battery)
+            self._handle_standby(raw_axes, pm_state)
 
         elif state == State.TakeOff:
-            self._handle_takeoff(data_ok, altitude, battery)
+            self._handle_takeoff(data_ok, altitude, pm_state)
 
         elif state == State.Flying:
-            self._handle_flying(raw_axes, last_event, data_ok, altitude, xy_speed, battery, now)
+            self._handle_flying(raw_axes, last_event, data_ok, altitude, xy_speed, pm_state, now)
 
         elif state == State.Landing:
             self._handle_landing(data_ok)
@@ -109,9 +113,31 @@ class StateMachine:
         elif state == State.ControllerError:
             self._handle_controller_error(last_event, data_ok, now)
 
-    def _transition(self, new_state: State):
-        logger.info("State: %s → %s", self._state.name, new_state.name)
+    def _transition(self, new_state: State, reason: str = None):
+        if new_state == State.Landing and reason:
+            logger.info("State: %s → %s (%s)", self._state.name, new_state.name, reason)
+        else:
+            logger.info("State: %s → %s", self._state.name, new_state.name)
         self._state = new_state
+
+    # -------------------------------------------------------------------------
+    # Periodic logging
+    # -------------------------------------------------------------------------
+
+    def _emit_periodic_log(self, raw_axes, altitude, battery, pm_state, last_event, now):
+        if self._last_periodic_log_time is None or (now - self._last_periodic_log_time) >= 1.0:
+            self._last_periodic_log_time = now
+            raw_alt = self._mapper.get_raw_altitude_input(raw_axes)
+            ctrl_age_ms = round((now - last_event) * 1000) if last_event is not None else None
+            logger.info(
+                "STATUS state=%s alt=%s bat=%s pm_state=%s raw_alt=%s ctrl_age_ms=%s",
+                self._state.name,
+                f"{altitude:.3f}" if altitude is not None else "None",
+                f"{battery:.2f}" if battery is not None else "None",
+                pm_state,
+                f"{raw_alt:.3f}",
+                ctrl_age_ms,
+            )
 
     # -------------------------------------------------------------------------
     # State handlers
@@ -124,19 +150,28 @@ class StateMachine:
         if data_ok and controller_connected:
             self._transition(State.Standby)
 
-    def _handle_standby(self, raw_axes, battery):
+    def _handle_standby(self, raw_axes, pm_state):
         raw_alt = self._mapper.get_raw_altitude_input(raw_axes)
-        if raw_alt > _ALTITUDE_AXIS_TAKEOFF_THRESHOLD:
-            if battery is not None and battery > _BATTERY_TAKEOFF_MIN:
+        above = raw_alt > _ALTITUDE_AXIS_TAKEOFF_THRESHOLD
+        if above:
+            if pm_state is not None and pm_state != _PM_STATE_LOW_POWER:
                 self._z_target = 0.0
+                self._alt_above_threshold_prev = False
                 self._transition(State.TakeOff)
+            elif not self._alt_above_threshold_prev:
+                # Rising edge — log blocking reason once
+                if pm_state is None:
+                    logger.warning("Takeoff blocked: no battery state reading")
+                else:
+                    logger.warning("Takeoff blocked: battery in low-power state (pm.state=%d)", pm_state)
+        self._alt_above_threshold_prev = above
 
-    def _handle_takeoff(self, data_ok, altitude, battery):
+    def _handle_takeoff(self, data_ok, altitude, pm_state):
         if not data_ok:
             self._transition(State.CrazyflieError)
             return
-        if battery is not None and battery < _BATTERY_LANDING_THRESHOLD:
-            self._transition(State.Landing)
+        if pm_state is not None and pm_state == _PM_STATE_LOW_POWER:
+            self._transition(State.Landing, reason="battery low-power state")
             return
 
         self._z_target = min(self._z_target + _TAKEOFF_RATE * _LOOP_DT, _TAKEOFF_TARGET_ALT)
@@ -145,7 +180,7 @@ class StateMachine:
         if altitude is not None and altitude > _TAKEOFF_ALT_THRESHOLD:
             self._transition(State.Flying)
 
-    def _handle_flying(self, raw_axes, last_event, data_ok, altitude, xy_speed, battery, now):
+    def _handle_flying(self, raw_axes, last_event, data_ok, altitude, xy_speed, pm_state, now):
         # Check CF data outage
         if not data_ok:
             self._transition(State.CrazyflieError)
@@ -158,29 +193,31 @@ class StateMachine:
             return
 
         # Battery check
-        if battery is not None and battery < _BATTERY_LANDING_THRESHOLD:
-            self._transition(State.Landing)
+        if pm_state is not None and pm_state == _PM_STATE_LOW_POWER:
+            self._transition(State.Landing, reason="battery low-power state")
             return
 
         # Altitude floor
         if altitude is not None and altitude < _LANDING_ALT_THRESHOLD:
-            self._transition(State.Landing)
+            self._transition(State.Landing, reason=f"altitude {altitude:.2f} m below {_LANDING_ALT_THRESHOLD} m")
             return
 
         # Safety violation checks
         violation = False
+        violation_reason = None
         if altitude is not None and altitude > _SAFETY_ALT_LIMIT:
             violation = True
+            violation_reason = f"altitude {altitude:.2f} m exceeded safety limit {_SAFETY_ALT_LIMIT} m"
         if xy_speed is not None and xy_speed > _SAFETY_XY_SPEED_LIMIT:
             violation = True
+            violation_reason = f"xy speed {xy_speed:.2f} m/s exceeded safety limit {_SAFETY_XY_SPEED_LIMIT} m/s"
 
         if violation:
             if self._safety_violation_start is None:
                 self._safety_violation_start = now
             elif (now - self._safety_violation_start) > _SAFETY_VIOLATION_DURATION:
-                logger.warning("Safety violation exceeded 1s — transitioning to Landing")
                 self._safety_violation_start = None
-                self._transition(State.Landing)
+                self._transition(State.Landing, reason=violation_reason)
                 return
         else:
             self._safety_violation_start = None
@@ -195,9 +232,8 @@ class StateMachine:
             if self._all_zero_start is None:
                 self._all_zero_start = now
             elif (now - self._all_zero_start) > _ALL_ZERO_TIMEOUT:
-                logger.info("All-zero input for >10s — transitioning to Landing")
                 self._all_zero_start = None
-                self._transition(State.Landing)
+                self._transition(State.Landing, reason="all-zero input for >10 s")
                 return
         else:
             self._all_zero_start = None
@@ -251,4 +287,4 @@ class StateMachine:
         # Auto-land after timeout
         if self._controller_error_start is not None:
             if (now - self._controller_error_start) > _CONTROLLER_ERROR_LAND_TIMEOUT:
-                self._transition(State.Landing)
+                self._transition(State.Landing, reason="controller error timeout")

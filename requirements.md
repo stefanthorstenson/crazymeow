@@ -29,8 +29,6 @@ Component: Highest level of software on Raspberry Pi, as an isolated piece of so
 <maximum_yaw_rate> = +-45 degrees/second
 <maximum_speed_in_xy_plane> = +-1.0 meters/second
 <maximum_altitude> = 1.2 meters
-<battery_level_takeoff> = 3.5 V
-<battery_level_landing> = 3.35 V
 
 ## Hardware
 
@@ -70,6 +68,24 @@ It should use the crazyflie-lib-python for flight control.
 The URI of the Crazyflie should be hard-coded in the software. Setting up URI should be part of manual setup.
 
 Any log files produced that are older than 24 h should be removed.
+
+#### Logging and debug mode
+
+The crazypilot should log the following:
+
+- 1 Hz readout of: current state, altitude, battery voltage, battery state, raw altitude axis value, and controller age (time in milliseconds since the last controller event was received).
+- When the system is in Standby and altitude axis is above threshold, and takeoff condition is not met, the reason shall be printed, once for every time the altitude axis threshold is crossed from below to above.
+- When the system goes into landing, the reason should be printed.
+
+All log entries should have UTC timestamps.
+
+Crazypilot should create one log file for every time crazypilot is started.
+
+#### Debug mode
+
+It should be possible to run crazypilot in debug mode.
+
+In debug mode, crazypilot should send all log output to stdout as well.
 
 ### Controller mapping setup
 
@@ -126,7 +142,8 @@ When the system is starting up.
 When
 
 - all needed telemetry is received from the Crazyflie to the Raspberry Pi, and
-- the Raspberry Pi is connected to the controller
+- the Raspberry Pi is connected to the controller, and
+- battery state is 0 (normal)
 
 the system shall go to state Standby.
 
@@ -139,7 +156,7 @@ Crazypilot should send no commands.
 When 
 
 - the user moves the joystick that corresponds to altitude to more than 50 % of positive maximum of the joystick, and
-- the battery level is greater than <battery_level_takeoff>
+- the crazyflie reports that the battery is not low on power
 
 the system should go into state Take-off.
 
@@ -156,7 +173,7 @@ When the Crazyflie is on altitude above 0.35 m, the system should go into state 
 
 If data received from the crazyflie is incomplete for more than <crazyflie_outage>, the system should go into state Crazyflie error.
 
-If the battery level is less than <battery_level_landing>, the system should go into state Landing.
+If the crazyflie reports battery is low on power.
 
 ### Flying
 
@@ -185,7 +202,7 @@ If data received from the crazyflie is incomplete for more than <crazyflie_outag
 
 If controller input is not received from the bluetooth controller to the raspberry pi for more than 0.5 seconds, the system should go into state Controller error
 
-If the battery level is less than <battery_level_landing>, the system should go into state Landing.
+If the crazyflie reports battery is low on power.
 
 ### Landing
 

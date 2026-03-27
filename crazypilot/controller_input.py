@@ -82,9 +82,9 @@ class ControllerInput:
                         pass
                     self._joystick = None
                 elif event.type == pygame.JOYDEVICEADDED:
-                    # Re-check for our controller
-                    candidate = self._find_joystick()
-                    if candidate is not None:
-                        self._joystick = candidate
+                    if self._joystick is None:
+                        candidate = self._find_joystick()
+                        if candidate is not None:
+                            self._joystick = candidate
 
             time.sleep(0.005)

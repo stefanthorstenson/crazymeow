@@ -37,13 +37,13 @@ Shared state between threads is protected by `threading.Lock` or `threading.Even
 |---|---|
 | `cflib` (crazyflie-lib-python) | Crazyflie communication, hover setpoints, telemetry |
 | `pygame` (joystick module only) | Gamepad detection and axis reading |
-| `logging` + `RotatingFileHandler` | Structured log output to timestamped files |
+| `logging` + `FileHandler` | Structured log output to one timestamped file per invocation, with UTC timestamps |
 | `systemd` / `systemctl` | Auto-start (external, configured by setup helpers) |
 
 ### Entry point and CLI
 
 ```
-crazypilot [--controller-mapping <path>]
+crazypilot [--controller-mapping <path>] [--debug]
 ```
 
 Default mapping path: `~/.config/crazypilot/controller_mapping.json`.
@@ -80,7 +80,8 @@ crazymeow/
 **Purpose:** Entry point. Parses CLI arguments, initialises all subsystems, starts threads, and blocks until shutdown.
 
 **Key responsibilities:**
-- Parse `--controller-mapping` flag.
+- Parse `--controller-mapping` and `--debug` flags.
+- Call `setup_logging(debug=<flag>)` before anything else.
 - Instantiate and wire together `ConfigLoader`, `Logger`, `ControllerInput`, `CrazyflieInterface`, and `StateMachine`.
 - Start all threads; handle `KeyboardInterrupt` for clean shutdown.
 
@@ -100,17 +101,20 @@ crazymeow/
 - Apply 5 % deadzone to all joystick axes before use.
 - Track timeouts (controller outage 0.5 s, all-zero input 10 s, controller error auto-land 2.0 s, crazyflie outage 0.5 s) using monotonic timestamps.
 - Monitor reported altitude and xy speed each tick for safety violations: if altitude > 1.5 m or xy speed > 1.2 m/s, start a 1 s violation timer; reset the timer if the condition clears; transition to Landing if the timer expires.
-- Monitor battery voltage each tick: in Standby, only allow transition to TakeOff if battery voltage > 3.5 V; in TakeOff and Flying, transition to Landing immediately if battery voltage < 3.35 V. Note: battery voltage is always available by the time Standby is reached, since Initializing requires telemetry to be OK before transitioning.
+- Monitor battery state (pm.state) each tick: in Standby, only allow transition to TakeOff if pm.state ≠ 3 (not low-power); in TakeOff and Flying, transition to Landing if pm.state == 3 (low-power). Using the firmware's pm.state rather than a raw voltage threshold avoids false triggers from momentary voltage sag during motor spin-up.
+- Emit a periodic log entry at approximately 1 Hz (tracked via a monotonic timestamp, not a separate thread). Each entry contains: current state, altitude, battery voltage, battery state (pm.state), raw altitude axis value, and time since last controller event in milliseconds (or `None` if no event received yet).
+- In state Standby, track the rising edge of the altitude axis threshold (50 % positive max): when the axis crosses from below to above the threshold and the takeoff condition is not met, log the blocking reason once (battery too low, or no battery reading). Reset the edge-detect flag when the axis drops back below threshold.
+- When transitioning to state Landing, log the reason. The `_transition` method accepts an optional `reason: str` parameter; when the new state is `Landing` and a reason is provided it is appended to the transition log message.
 
 **State transition summary:**
 
 ```
 Initializing  → Standby         : CF data OK  AND  controller connected
-Standby       → TakeOff         : altitude axis > 50 % positive max  AND  battery > 3.5 V
+Standby       → TakeOff         : altitude axis > 50 % positive max  AND  pm.state ≠ 3
 TakeOff       → Flying          : altitude > 0.35 m
 TakeOff       → CrazyflieError  : CF data gap > 0.5 s
-TakeOff       → Landing         : battery < 3.35 V
-Flying        → Landing         : altitude < 0.2 m  OR  all-zero input > 10 s  OR  altitude > 1.5 m for > 1 s  OR  xy speed > 1.2 m/s for > 1 s  OR  battery < 3.35 V
+TakeOff       → Landing         : pm.state == 3
+Flying        → Landing         : altitude < 0.2 m  OR  all-zero input > 10 s  OR  altitude > 1.5 m for > 1 s  OR  xy speed > 1.2 m/s for > 1 s  OR  pm.state == 3
 Flying        → CrazyflieError  : CF data gap > 0.5 s
 Flying        → ControllerError : no controller input > 0.5 s
 Landing       → Standby         : landing sequence complete
@@ -137,7 +141,7 @@ ControllerError→CrazyflieError  : CF data gap > 0.5 s
 - Continuously poll for `JOYAXISMOTION` events using `pygame.event.get()`.
 - Store the latest value for each axis index in a thread-safe structure.
 - Record a timestamp of the last event received (used by state machine for controller-outage detection).
-- Continuously attempt to detect and reconnect to the configured controller by name if it disappears.
+- Continuously attempt to detect and reconnect to the configured controller by name if it disappears. `JOYDEVICEADDED` events are only processed when `self._joystick is None`; if the controller is already connected the event is ignored. This prevents a feedback loop where calling `pygame.joystick.quit()` / `pygame.joystick.init()` inside `_find_joystick` would itself generate new `JOYDEVICEADDED` events.
 
 **Public interface:**
 - `ControllerInput(controller_name)` — constructor.
@@ -153,7 +157,7 @@ ControllerError→CrazyflieError  : CF data gap > 0.5 s
 
 **Key responsibilities:**
 - Continuously attempt to connect to the Crazyflie at the configured URI using cflib's asynchronous connection API.
-- In the `connected` callback: create and add a `LogConfig` named `"StateEstimate"` with a 20 ms period (50 Hz), containing the variables `stateEstimate.z`, `stateEstimate.vx`, `stateEstimate.vy`, and `pm.vbat`. Register a data callback and start the log config.
+- In the `connected` callback: create and add a `LogConfig` named `"StateEstimate"` with a 20 ms period (50 Hz), containing the variables `stateEstimate.z`, `stateEstimate.vx`, `stateEstimate.vy`, `pm.vbat`, and `pm.state`. Register a data callback and start the log config.
 - In the log data callback: store the latest values of `z`, `vx`, `vy`, and `vbat` in thread-safe attributes; record the timestamp of the last callback for staleness detection.
 - In the `disconnected` callback: mark data as stale and stop reconnect attempts until a new connection cycle begins.
 - Expose methods to send hover setpoints and a stop command.
@@ -168,6 +172,7 @@ ControllerError→CrazyflieError  : CF data gap > 0.5 s
 - `get_altitude() -> float | None` — latest `stateEstimate.z` value in metres.
 - `get_xy_speed() -> float | None` — magnitude of latest (`stateEstimate.vx`, `stateEstimate.vy`) in m/s.
 - `get_battery_voltage() -> float | None` — latest `pm.vbat` value in volts.
+- `get_battery_state() -> int | None` — latest `pm.state` value (0=battery, 1=charging, 2=charged, 3=low-power, 4=shutdown); `None` if no data received yet.
 - `send_hover_setpoint(vx, vy, yaw_rate, z_target)` — wraps `cf.commander.send_hover_setpoint(vx, vy, yawrate, zdistance)`.
 - `send_stop()` — calls `cf.commander.send_stop_setpoint()`.
 
@@ -209,12 +214,14 @@ ControllerError→CrazyflieError  : CF data gap > 0.5 s
 **Purpose:** Configures application logging and manages log file rotation.
 
 **Key responsibilities:**
-- Set up a `logging.Logger` writing to a timestamped file under `~/.local/share/crazypilot/logs/`.
-- Also write `WARNING` and above to stderr.
-- Start a background daemon thread that scans the log directory every 5 minutes and deletes files with an `mtime` older than 24 hours.
+- Accept a `debug: bool` parameter.
+- Set up a `logging.Logger` writing to a timestamped log file under `~/.local/share/crazypilot/logs/` using a plain `FileHandler` (one file per invocation; no in-process rotation).
+- Use UTC timestamps in all log entries by setting `formatter.converter = time.gmtime`.
+- When `debug=True`, add a `StreamHandler(sys.stdout)` at `DEBUG` level so all log output is also printed to stdout.
+- Start a background daemon thread that scans the log directory every 5 minutes and deletes files with an `mtime` older than 24 hours (CP-053).
 
 **Public interface:**
-- `setup_logging() -> logging.Logger`.
+- `setup_logging(debug: bool = False) -> logging.Logger`.
 - `start_log_rotation(log_dir: str)` — starts the background rotation thread.
 
 ---
@@ -254,6 +261,7 @@ A single `LogConfig` block is created and started in the `connected` callback. I
 | `stateEstimate.vx` | `float` | Velocity in Crazyflie body x-direction in m/s |
 | `stateEstimate.vy` | `float` | Velocity in Crazyflie body y-direction in m/s |
 | `pm.vbat` | `float` | Battery voltage in volts |
+| `pm.state` | `int8` | Power management state: 0=battery, 1=charging, 2=charged, 3=low-power, 4=shutdown |
 
 The callback stores all values atomically under a `threading.Lock`. The `is_data_ok()` staleness check is driven by the timestamp of the last successful callback, not by the connection status alone — this ensures a connected-but-silent Crazyflie is still treated as an error.
 
@@ -285,7 +293,7 @@ The loop runs at ~50 Hz. The cflib watchdog cuts motors if no setpoint arrives w
 
 Path: `~/.local/share/crazypilot/logs/crazypilot_<YYYYMMDD_HHMMSS>.log`
 
-Format: standard Python `logging` text format with timestamp, level, module, and message. Files older than 24 hours are deleted automatically.
+The timestamp in the filename is UTC. One file is created per invocation; there is no in-process rotation. Format: standard Python `logging` text format — `%(asctime)s %(levelname)s %(module)s %(message)s` — with UTC timestamps. Files older than 24 hours are deleted automatically.
 
 ### systemd service file
 

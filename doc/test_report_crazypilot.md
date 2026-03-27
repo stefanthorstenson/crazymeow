@@ -39,16 +39,22 @@
 | CP-033 | Altitude > 1.5 m for > 1 s triggers Landing | Pass |
 | CP-034 | XY speed > 1.2 m/s for > 1 s triggers Landing | Pass |
 | CP-053 | Log files older than 24 hours are automatically deleted | Pass |
+| CP-054 | One log file per invocation, UTC timestamp filename, stored in `~/.local/share/crazypilot/logs/` | Pass |
+| CP-055 | All log entries use UTC timestamps | Pass |
+| CP-056 | Periodic STATUS log entry ~once per second with state, altitude, battery, pm.state, raw altitude axis, controller age | Pass |
+| CP-057 | Takeoff blocking reason logged once per rising edge of altitude threshold in Standby | Pass |
+| CP-058 | Reason logged when transitioning to Landing | Pass |
+| CP-059 | `--debug` flag sends all log output to stdout | Pass |
 | CP-060 | All required system states implemented | Pass |
 | CP-061 | Starts in state Initializing | Pass |
 | CP-062 | Transitions to Initializing if any part of system rebooted | Cannot be tested |
 | CP-063 | In Standby, no commands sent to Crazyflie | Pass |
-| CP-064 | In Standby, altitude joystick > 50% and battery > 3.5 V triggers Take-off | Pass |
+| CP-064 | In Standby, altitude joystick > 50% and battery not in low-power state triggers Take-off | Pass |
 | CP-065 | In Take-off, no controller input affects the Crazyflie | Pass |
 | CP-066 | In Take-off, climb to 0.4 m at 75% of max altitude rate, no xy movement | Pass |
 | CP-067 | In Take-off, altitude > 0.35 m triggers Flying | Pass |
 | CP-068 | In Take-off, CF data incomplete > 0.5 s triggers Crazyflie error | Pass |
-| CP-069 | In Take-off, battery < 3.35 V triggers Landing | Pass |
+| CP-069 | In Take-off, battery in low-power state (pm.state == 3) triggers Landing | Pass |
 | CP-070 | In Flying, altitude < 0.2 m triggers Landing | Pass |
 | CP-071 | In Flying, all commands zero for > 10 s triggers Landing | Pass |
 | CP-072 | In Flying, CF data incomplete triggers Crazyflie error | Pass |
@@ -63,13 +69,13 @@
 | CP-081 | In Controller error, if controller input received, transition to Flying | Pass |
 | CP-082 | In Controller error, after 2.0 s, transition to Landing | Pass |
 | CP-083 | In Controller error, if CF data incomplete, transition to Crazyflie error | Pass |
-| CP-084 | In Flying, battery < 3.35 V triggers Landing | Pass |
+| CP-084 | In Flying, battery in low-power state (pm.state == 3) triggers Landing | Pass |
 | CP-085 | In Initializing, no commands sent to Crazyflie | Pass |
 | CP-086 | In Initializing, CF data ok and controller connected triggers Standby | Pass |
 
 ## Coverage
-- Total requirements: 56
-- Pass: 39
+- Total requirements: 63
+- Pass: 46
 - Fail: 0
 - Cannot be tested: 17
 - Coverage (Pass / (Pass + Fail)): 100%

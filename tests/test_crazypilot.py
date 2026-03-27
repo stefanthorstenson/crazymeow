@@ -32,12 +32,13 @@ def _make_mapping(alt_idx=0, alt_inv=False, yaw_idx=1, yaw_inv=False,
     }
 
 
-def _make_cf_mock(data_ok=True, altitude=0.5, xy_speed=0.0, battery=3.8):
+def _make_cf_mock(data_ok=True, altitude=0.5, xy_speed=0.0, battery=3.8, pm_state=0):
     cf = MagicMock()
     cf.is_data_ok.return_value = data_ok
     cf.get_altitude.return_value = altitude
     cf.get_xy_speed.return_value = xy_speed
     cf.get_battery_voltage.return_value = battery
+    cf.get_battery_state.return_value = pm_state
     return cf
 
 
@@ -443,37 +444,36 @@ def test_CP_063_standby_sends_no_commands():
 
 
 def test_CP_064_standby_to_takeoff_on_altitude_input_and_battery():
-    """In Standby, altitude joystick > 50% and battery > 3.5V -> TakeOff."""
+    """In Standby, altitude joystick > 50% and battery not in low-power state -> TakeOff."""
     from crazypilot.state_machine import StateMachine, State
     from crazypilot.joystick_mapper import JoystickMapper
 
     mapper = JoystickMapper(_make_mapping())
-    # altitude axis 0, value 0.6 > 50% threshold
     axes = {0: 0.6, 1: 0.0, 2: 0.0, 3: 0.0}
-    cf = _make_cf_mock(battery=3.8)
+    cf = _make_cf_mock(pm_state=0)
     ctrl = _make_ctrl_mock(axes=axes, last_event=time.monotonic())
 
     sm = StateMachine(cf, ctrl, mapper, config={})
     sm._state = State.Standby
 
-    sm._handle_standby(axes, 3.8)
+    sm._handle_standby(axes, pm_state=0)
     assert sm._state == State.TakeOff
 
 
 def test_CP_064_standby_no_takeoff_if_battery_low():
-    """In Standby, no takeoff if battery <= 3.5V."""
+    """In Standby, no takeoff if battery in low-power state (pm.state == 3)."""
     from crazypilot.state_machine import StateMachine, State
     from crazypilot.joystick_mapper import JoystickMapper
 
     mapper = JoystickMapper(_make_mapping())
     axes = {0: 0.6, 1: 0.0, 2: 0.0, 3: 0.0}
-    cf = _make_cf_mock(battery=3.4)
+    cf = _make_cf_mock(pm_state=3)
     ctrl = _make_ctrl_mock(axes=axes)
 
     sm = StateMachine(cf, ctrl, mapper, config={})
     sm._state = State.Standby
 
-    sm._handle_standby(axes, 3.4)
+    sm._handle_standby(axes, pm_state=3)
     assert sm._state == State.Standby
 
 
@@ -488,7 +488,7 @@ def test_CP_064_standby_no_takeoff_if_altitude_input_low():
     sm = StateMachine(_make_cf_mock(), _make_ctrl_mock(axes=axes), mapper, config={})
     sm._state = State.Standby
 
-    sm._handle_standby(axes, 3.8)
+    sm._handle_standby(axes, pm_state=0)
     assert sm._state == State.Standby
 
 
@@ -509,7 +509,7 @@ def test_CP_065_takeoff_no_controller_effect():
     sm = StateMachine(cf, ctrl, mapper, config={})
     sm._state = State.TakeOff
 
-    sm._handle_takeoff(True, 0.1, 3.8)
+    sm._handle_takeoff(True, 0.1, 0)
 
     # Must have sent a setpoint, but vx=vy=yaw must be 0
     assert cf.send_hover_setpoint.called
@@ -543,7 +543,7 @@ def test_CP_067_takeoff_to_flying_above_threshold():
     sm = StateMachine(cf, ctrl, mapper, config={})
     sm._state = State.TakeOff
 
-    sm._handle_takeoff(True, 0.36, 3.8)
+    sm._handle_takeoff(True, 0.36, 0)
     assert sm._state == State.Flying
 
 
@@ -561,12 +561,12 @@ def test_CP_068_takeoff_to_cf_error_on_data_not_ok():
     sm = StateMachine(_make_cf_mock(), _make_ctrl_mock(), mapper, config={})
     sm._state = State.TakeOff
 
-    sm._handle_takeoff(False, 0.1, 3.8)
+    sm._handle_takeoff(False, 0.1, 0)
     assert sm._state == State.CrazyflieError
 
 
 def test_CP_069_takeoff_to_landing_on_low_battery():
-    """In TakeOff, if battery < 3.35V, transition to Landing."""
+    """In TakeOff, if battery in low-power state (pm.state == 3), transition to Landing."""
     from crazypilot.state_machine import StateMachine, State
     from crazypilot.joystick_mapper import JoystickMapper
 
@@ -574,7 +574,7 @@ def test_CP_069_takeoff_to_landing_on_low_battery():
     sm = StateMachine(_make_cf_mock(), _make_ctrl_mock(), mapper, config={})
     sm._state = State.TakeOff
 
-    sm._handle_takeoff(True, 0.1, 3.3)
+    sm._handle_takeoff(True, 0.1, 3)
     assert sm._state == State.Landing
 
 
@@ -742,7 +742,7 @@ def test_CP_073_flying_to_controller_error_on_input_loss():
 
 
 def test_CP_084_flying_to_landing_on_low_battery():
-    """In Flying, if battery < 3.35V, transition to Landing."""
+    """In Flying, if battery in low-power state (pm.state == 3), transition to Landing."""
     from crazypilot.state_machine import StateMachine, State
     from crazypilot.joystick_mapper import JoystickMapper
 
@@ -754,7 +754,7 @@ def test_CP_084_flying_to_landing_on_low_battery():
     sm._state = State.Flying
     sm._z_target = 0.5
 
-    sm._handle_flying(axes, now, True, 0.5, 0.0, 3.3, now)
+    sm._handle_flying(axes, now, True, 0.5, 0.0, 3, now)
     assert sm._state == State.Landing
 
 
@@ -995,3 +995,201 @@ def test_CP_053_rotation_thread_started():
         start_log_rotation(tmpdir)
         after = {t.name for t in threading.enumerate()}
         assert "log-rotation" in after - before, "log-rotation thread not started"
+
+
+def test_CP_054_one_log_file_per_invocation():
+    """setup_logging shall create one log file per invocation with a UTC timestamp filename."""
+    import logging
+    from crazypilot import logger as log_mod
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with patch.object(log_mod.Path, "home", return_value=log_mod.Path(tmpdir)):
+            lg = log_mod.setup_logging()
+            # Remove handlers so the logger doesn't bleed into other tests
+            for h in lg.handlers[:]:
+                h.close()
+                lg.removeHandler(h)
+
+        log_dir = os.path.join(tmpdir, ".local", "share", "crazypilot", "logs")
+        files = os.listdir(log_dir)
+        assert len(files) == 1, f"Expected 1 log file, found {files}"
+        assert files[0].startswith("crazypilot_"), "Log filename should start with 'crazypilot_'"
+        assert files[0].endswith(".log"), "Log filename should end with '.log'"
+
+
+def test_CP_055_utc_timestamps():
+    """All log entries shall use UTC timestamps."""
+    import logging
+    import time
+    from crazypilot import logger as log_mod
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with patch.object(log_mod.Path, "home", return_value=log_mod.Path(tmpdir)):
+            lg = log_mod.setup_logging()
+
+        try:
+            file_handler = next(
+                h for h in lg.handlers if isinstance(h, logging.FileHandler)
+            )
+            assert file_handler.formatter.converter is time.gmtime, \
+                "File handler formatter should use time.gmtime for UTC timestamps"
+        finally:
+            for h in lg.handlers[:]:
+                h.close()
+                lg.removeHandler(h)
+
+
+def test_CP_059_debug_flag_adds_stdout_handler():
+    """In debug mode, all log output shall also be written to stdout."""
+    import logging
+    from crazypilot import logger as log_mod
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with patch.object(log_mod.Path, "home", return_value=log_mod.Path(tmpdir)):
+            lg = log_mod.setup_logging(debug=True)
+
+        try:
+            stdout_handlers = [
+                h for h in lg.handlers
+                if isinstance(h, logging.StreamHandler)
+                and not isinstance(h, logging.FileHandler)
+                and h.stream is log_mod.sys.stdout
+            ]
+            assert len(stdout_handlers) == 1, "Expected one stdout handler in debug mode"
+            assert stdout_handlers[0].level == logging.DEBUG, \
+                "Stdout handler should be at DEBUG level"
+        finally:
+            for h in lg.handlers[:]:
+                h.close()
+                lg.removeHandler(h)
+
+
+def test_CP_059_no_debug_no_stdout_handler():
+    """Without --debug, log output shall not go to stdout."""
+    import logging
+    from crazypilot import logger as log_mod
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with patch.object(log_mod.Path, "home", return_value=log_mod.Path(tmpdir)):
+            lg = log_mod.setup_logging(debug=False)
+
+        try:
+            stdout_handlers = [
+                h for h in lg.handlers
+                if isinstance(h, logging.StreamHandler)
+                and not isinstance(h, logging.FileHandler)
+                and h.stream is log_mod.sys.stdout
+            ]
+            assert len(stdout_handlers) == 0, "Expected no stdout handler without --debug"
+        finally:
+            for h in lg.handlers[:]:
+                h.close()
+                lg.removeHandler(h)
+
+
+def test_CP_056_periodic_status_log():
+    """Crazypilot shall emit a periodic STATUS log entry approximately once per second."""
+    from crazypilot.state_machine import StateMachine, State
+    from crazypilot.joystick_mapper import JoystickMapper
+
+    sm, cf, ctrl, mapper = _make_state_machine()
+    # Advance to Standby so periodic log fires in a normal state
+    sm._state = State.Standby
+
+    now = time.monotonic()
+    sm._last_periodic_log_time = None  # force emit on first call
+
+    with patch("crazypilot.state_machine.logger") as mock_log:
+        sm._emit_periodic_log(
+            raw_axes={0: 0.0, 1: 0.0, 2: 0.0, 3: 0.0},
+            altitude=0.5,
+            battery=3.8,
+            pm_state=0,
+            last_event=now - 0.1,
+            now=now,
+        )
+        # Should have logged once
+        assert mock_log.info.called, "Expected a STATUS log entry"
+        call_args = mock_log.info.call_args[0]
+        assert "STATUS" in call_args[0], "Log message should contain 'STATUS'"
+
+    # A second call immediately after should NOT log again
+    with patch("crazypilot.state_machine.logger") as mock_log:
+        sm._emit_periodic_log(
+            raw_axes={0: 0.0, 1: 0.0, 2: 0.0, 3: 0.0},
+            altitude=0.5,
+            battery=3.8,
+            pm_state=0,
+            last_event=now - 0.1,
+            now=now + 0.1,  # only 100 ms later
+        )
+        assert not mock_log.info.called, "Should not log again within 1 s"
+
+    # A call 1+ second later should log again
+    with patch("crazypilot.state_machine.logger") as mock_log:
+        sm._emit_periodic_log(
+            raw_axes={0: 0.0, 1: 0.0, 2: 0.0, 3: 0.0},
+            altitude=0.5,
+            battery=3.8,
+            pm_state=0,
+            last_event=now - 0.1,
+            now=now + 1.1,
+        )
+        assert mock_log.info.called, "Should log again after 1 s"
+
+
+def test_CP_057_takeoff_blocked_logged_on_rising_edge_only():
+    """Takeoff blocking reason shall be logged once per rising edge of altitude threshold."""
+    from crazypilot.state_machine import StateMachine, State
+
+    sm, cf, ctrl, mapper = _make_state_machine()
+    sm._state = State.Standby
+
+    # Battery too low to take off
+    low_battery_axes = {0: 0.8}  # altitude axis above 0.5 threshold
+
+    with patch("crazypilot.state_machine.logger") as mock_log:
+        # First call above threshold — should log once
+        sm._handle_standby(low_battery_axes, pm_state=3)
+        assert mock_log.warning.call_count == 1, "Should log once on rising edge"
+
+        # Second consecutive call above threshold — should NOT log again
+        sm._handle_standby(low_battery_axes, pm_state=3)
+        assert mock_log.warning.call_count == 1, "Should not log again while still above threshold"
+
+        # Drop below threshold, then above again — should log again
+        sm._handle_standby({0: 0.0}, pm_state=3)  # back below
+        sm._handle_standby(low_battery_axes, pm_state=3)  # new rising edge
+        assert mock_log.warning.call_count == 2, "Should log again on second rising edge"
+
+
+def test_CP_058_landing_reason_logged():
+    """When transitioning to Landing, the reason shall be logged."""
+    from crazypilot.state_machine import StateMachine, State
+
+    sm, cf, ctrl, mapper = _make_state_machine()
+    sm._state = State.Flying
+
+    with patch("crazypilot.state_machine.logger") as mock_log:
+        sm._transition(State.Landing, reason="battery low")
+        assert mock_log.info.called, "Expected a log entry on transition"
+        logged_msg = mock_log.info.call_args[0]
+        # The formatted message should contain both the state name and the reason
+        full_msg = logged_msg[0] % logged_msg[1:]
+        assert "Landing" in full_msg
+        assert "battery low" in full_msg
+
+
+def test_CP_058_no_reason_transition_still_works():
+    """Transitions to other states without a reason shall still log normally."""
+    from crazypilot.state_machine import StateMachine, State
+
+    sm, cf, ctrl, mapper = _make_state_machine()
+    sm._state = State.Initializing
+
+    with patch("crazypilot.state_machine.logger") as mock_log:
+        sm._transition(State.Standby)
+        assert mock_log.info.called
+        logged_msg = mock_log.info.call_args[0]
+        full_msg = logged_msg[0] % logged_msg[1:]
+        assert "Standby" in full_msg

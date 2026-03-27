@@ -79,7 +79,7 @@ Crazypilot is the software running on the Raspberry Pi that reads controller inp
 | ID | Requirement |
 |---|---|
 | CP-063 | In state Standby, Crazypilot shall not send any commands to the Crazyflie. |
-| CP-064 | In state Standby, when the altitude joystick input exceeds 50 % of its positive maximum and the battery voltage is greater than 3.5 V (battery_level_takeoff), Crazypilot shall transition to state Take-off. |
+| CP-064 | In state Standby, when the altitude joystick input exceeds 50 % of its positive maximum and the Crazyflie battery is not in low-power state (pm.state ≠ 3), Crazypilot shall transition to state Take-off. |
 
 #### State Take-off
 
@@ -89,7 +89,7 @@ Crazypilot is the software running on the Raspberry Pi that reads controller inp
 | CP-066 | In state Take-off, Crazypilot shall command the Crazyflie to reach an altitude of 0.4 m at 75 % of the maximum allowed altitude rate, with no movement in the xy-plane. |
 | CP-067 | In state Take-off, when the Crazyflie altitude exceeds 0.35 m, Crazypilot shall transition to state Flying. |
 | CP-068 | In state Take-off, if Crazyflie data is incomplete for more than crazyflie_outage (0.5 s), Crazypilot shall transition to state Crazyflie error. |
-| CP-069 | In state Take-off, if the battery voltage is less than 3.35 V (battery_level_landing), Crazypilot shall transition to state Landing. |
+| CP-069 | In state Take-off, if the Crazyflie battery is in low-power state (pm.state = 3), Crazypilot shall transition to state Landing. |
 
 #### State Flying
 
@@ -105,7 +105,7 @@ Crazypilot is the software running on the Raspberry Pi that reads controller inp
 | CP-071 | In state Flying, if all controller input is zero for more than 10 s, Crazypilot shall transition to state Landing. |
 | CP-072 | In state Flying, if Crazyflie data is incomplete for more than crazyflie_outage (0.5 s), Crazypilot shall transition to state Crazyflie error. |
 | CP-073 | In state Flying, if no controller input is received for more than 0.5 s, Crazypilot shall transition to state Controller error. |
-| CP-084 | In state Flying, if the battery voltage is less than 3.35 V (battery_level_landing), Crazypilot shall transition to state Landing. |
+| CP-084 | In state Flying, if the Crazyflie battery is in low-power state (pm.state ≠ 3),  Crazypilot shall transition to state Landing. |
 
 #### State Landing
 
@@ -136,4 +136,10 @@ Crazypilot is the software running on the Raspberry Pi that reads controller inp
 
 | ID | Requirement |
 |---|---|
-| CP-053 | If log files are created, any log file older than 24 hours shall be automatically deleted. |
+| CP-053 | Any log file older than 24 hours shall be automatically deleted. |
+| CP-054 | Crazypilot shall create one log file per invocation, named with a UTC timestamp, stored in `~/.local/share/crazypilot/logs/`. |
+| CP-055 | All log entries shall use UTC timestamps. |
+| CP-056 | Crazypilot shall write a periodic log entry approximately once per second containing: current state, altitude, battery voltage, battery state (pm.state), raw altitude axis value, and time since last controller event in milliseconds. |
+| CP-057 | When in state Standby, if the altitude axis input crosses above the takeoff threshold (50 % of positive maximum) and the takeoff condition is not met, Crazypilot shall log the reason. This shall be logged once per rising edge of the threshold (not continuously). |
+| CP-058 | When Crazypilot transitions to state Landing, it shall log the reason for the transition. |
+| CP-059 | Crazypilot shall support a `--debug` flag. In debug mode, all log output shall also be written to stdout. |
