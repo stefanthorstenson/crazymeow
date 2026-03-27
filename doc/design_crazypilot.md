@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Software | Crazypilot |
-| Version | 1.2 |
+| Version | 1.3 |
 | Status | Approved |
 
 ---
@@ -77,14 +77,16 @@ Default mapping path: `~/.config/crazypilot/controller_mapping.json`.
 - Apply 5 % deadzone to all joystick axes before use.
 - Track timeouts (controller outage 0.5 s, all-zero input 10 s, controller error auto-land 2.0 s, crazyflie outage 0.5 s) using monotonic timestamps.
 - Monitor reported altitude and xy speed each tick for safety violations: if altitude > 1.5 m or xy speed > 1.2 m/s, start a 1 s violation timer; reset the timer if the condition clears; transition to Landing if the timer expires.
+- Monitor battery voltage each tick: in Standby, only allow transition to TakeOff if battery voltage > 3.5 V; in TakeOff and Flying, transition to Landing immediately if battery voltage < 3.35 V.
 
 **State transition summary:**
 
 ```
-Standby       → TakeOff         : altitude axis > 50 % positive max
+Standby       → TakeOff         : altitude axis > 50 % positive max  AND  battery > 3.5 V
 TakeOff       → Flying          : altitude > 0.35 m
 TakeOff       → CrazyflieError  : CF data gap > 0.5 s
-Flying        → Landing         : altitude < 0.2 m  OR  all-zero input > 10 s  OR  altitude > 1.5 m for > 1 s  OR  xy speed > 1.2 m/s for > 1 s
+TakeOff       → Landing         : battery < 3.35 V
+Flying        → Landing         : altitude < 0.2 m  OR  all-zero input > 10 s  OR  altitude > 1.5 m for > 1 s  OR  xy speed > 1.2 m/s for > 1 s  OR  battery < 3.35 V
 Flying        → CrazyflieError  : CF data gap > 0.5 s
 Flying        → ControllerError : no controller input > 0.5 s
 Landing       → Standby         : landing sequence complete
@@ -127,8 +129,8 @@ ControllerError→CrazyflieError  : CF data gap > 0.5 s
 
 **Key responsibilities:**
 - Continuously attempt to connect to the Crazyflie at the configured URI using cflib's asynchronous connection API.
-- In the `connected` callback: create and add a `LogConfig` named `"StateEstimate"` with a 20 ms period (50 Hz), containing the variables `stateEstimate.z`, `stateEstimate.vx`, and `stateEstimate.vy`. Register a data callback and start the log config.
-- In the log data callback: store the latest values of `z`, `vx`, and `vy` in thread-safe attributes; record the timestamp of the last callback for staleness detection.
+- In the `connected` callback: create and add a `LogConfig` named `"StateEstimate"` with a 20 ms period (50 Hz), containing the variables `stateEstimate.z`, `stateEstimate.vx`, `stateEstimate.vy`, and `pm.vbat`. Register a data callback and start the log config.
+- In the log data callback: store the latest values of `z`, `vx`, `vy`, and `vbat` in thread-safe attributes; record the timestamp of the last callback for staleness detection.
 - In the `disconnected` callback: mark data as stale and stop reconnect attempts until a new connection cycle begins.
 - Expose methods to send hover setpoints and a stop command.
 - Detect data staleness: if no log callback has fired within `crazyflie_outage` (0.5 s), report data as incomplete.
@@ -141,6 +143,7 @@ ControllerError→CrazyflieError  : CF data gap > 0.5 s
 - `is_data_ok() -> bool` — False if data gap exceeds 0.5 s.
 - `get_altitude() -> float | None` — latest `stateEstimate.z` value in metres.
 - `get_xy_speed() -> float | None` — magnitude of latest (`stateEstimate.vx`, `stateEstimate.vy`) in m/s.
+- `get_battery_voltage() -> float | None` — latest `pm.vbat` value in volts.
 - `send_hover_setpoint(vx, vy, yaw_rate, z_target)` — wraps `cf.commander.send_hover_setpoint(vx, vy, yawrate, zdistance)`.
 - `send_stop()` — calls `cf.commander.send_stop_setpoint()`.
 
@@ -226,6 +229,7 @@ A single `LogConfig` block is created and started in the `connected` callback. I
 | `stateEstimate.z` | `float` | Altitude above take-off surface in metres (Flow Deck v2) |
 | `stateEstimate.vx` | `float` | Velocity in Crazyflie body x-direction in m/s |
 | `stateEstimate.vy` | `float` | Velocity in Crazyflie body y-direction in m/s |
+| `pm.vbat` | `float` | Battery voltage in volts |
 
 The callback stores all three values atomically under a `threading.Lock`. The `is_data_ok()` staleness check is driven by the timestamp of the last successful callback, not by the connection status alone — this ensures a connected-but-silent Crazyflie is still treated as an error.
 

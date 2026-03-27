@@ -10,7 +10,7 @@ A toy version of the crazyflie, with a complete hardware setup to be able to fly
 
 | Field | Value |
 |---|---|
-| Version | 1.2 |
+| Version | 1.3 |
 
 ## Definitions
 
@@ -28,6 +28,8 @@ Component: Highest level of software on Raspberry Pi, as an isolated piece of so
 <maximum_yaw_rate> = +-45 degrees/second
 <maximum_speed_in_xy_plane> = +-1.0 meters/second
 <maximum_altitude> = 1.2 meters
+<battery_level_takeoff> = 3.5 V
+<battery_level_landing> = 3.35 V
 
 ## Hardware
 
@@ -120,7 +122,12 @@ When the Crazyflie is on the ground and ready to take off.
 
 Crazypilot should send no commands.
 
-When the user moves the joystick that corresponds to altitude to more than 50 % of positive maximum of the joystick, the system should go into state Take-off.
+When 
+
+- the user moves the joystick that corresponds to altitude to more than 50 % of positive maximum of the joystick, and
+- the battery level is greater than <battery_level_takeoff>
+
+the system should go into state Take-off.
 
 ### Take-off
 
@@ -134,6 +141,8 @@ Take-off sequence:
 When the Crazyflie is on altitude above 0.35 m, the system should go into state Flying.
 
 If data received from the crazyflie is incomplete for more than <crazyflie_outage>, the system should go into state Crazyflie error.
+
+If the battery level is less than <battery_level_landing>, the system should go into state Landing.
 
 ### Flying
 
@@ -161,6 +170,8 @@ If the all controller input is zero for more than 10 seconds, the system should 
 If data received from the crazyflie is incomplete for more than <crazyflie_outage>, the system should go into state Crazyflie error.
 
 If controller input is not received from the bluetooth controller to the raspberry pi for more than 0.5 seconds, the system should go into state Controller error
+
+If the battery level is less than <battery_level_landing>, the system should go into state Landing.
 
 ### Landing
 

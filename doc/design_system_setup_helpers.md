@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Software | System Setup Helpers |
-| Version | 1.2 |
+| Version | 1.3 |
 | Status | Approved |
 
 ---

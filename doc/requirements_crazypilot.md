@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Software | Crazypilot |
-| Version | 1.2 |
+| Version | 1.3 |
 | Status | Approved |
 
 ---
@@ -71,7 +71,7 @@ Crazypilot is the software running on the Raspberry Pi that reads controller inp
 | ID | Requirement |
 |---|---|
 | CP-063 | In state Standby, Crazypilot shall not send any commands to the Crazyflie. |
-| CP-064 | In state Standby, when the altitude joystick input exceeds 50 % of its positive maximum, Crazypilot shall transition to state Take-off. |
+| CP-064 | In state Standby, when the altitude joystick input exceeds 50 % of its positive maximum and the battery voltage is greater than 3.5 V (battery_level_takeoff), Crazypilot shall transition to state Take-off. |
 
 #### State Take-off
 
@@ -81,6 +81,7 @@ Crazypilot is the software running on the Raspberry Pi that reads controller inp
 | CP-066 | In state Take-off, Crazypilot shall command the Crazyflie to reach an altitude of 0.4 m at 75 % of the maximum allowed altitude rate, with no movement in the xy-plane. |
 | CP-067 | In state Take-off, when the Crazyflie altitude exceeds 0.35 m, Crazypilot shall transition to state Flying. |
 | CP-068 | In state Take-off, if Crazyflie data is incomplete for more than crazyflie_outage (0.5 s), Crazypilot shall transition to state Crazyflie error. |
+| CP-069 | In state Take-off, if the battery voltage is less than 3.35 V (battery_level_landing), Crazypilot shall transition to state Landing. |
 
 #### State Flying
 
@@ -96,6 +97,7 @@ Crazypilot is the software running on the Raspberry Pi that reads controller inp
 | CP-071 | In state Flying, if all controller input is zero for more than 10 s, Crazypilot shall transition to state Landing. |
 | CP-072 | In state Flying, if Crazyflie data is incomplete for more than crazyflie_outage (0.5 s), Crazypilot shall transition to state Crazyflie error. |
 | CP-073 | In state Flying, if no controller input is received for more than 0.5 s, Crazypilot shall transition to state Controller error. |
+| CP-084 | In state Flying, if the battery voltage is less than 3.35 V (battery_level_landing), Crazypilot shall transition to state Landing. |
 
 #### State Landing
 
