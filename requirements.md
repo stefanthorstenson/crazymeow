@@ -1,7 +1,5 @@
 # TODO - still to be specified
 
-- Behaviour on low battery level
-
 # CrazyMeow software requirements specification
 
 A toy version of the crazyflie, with a complete hardware setup to be able to fly. The focus of the CrazyMeow is ease of use and safety. A kid should be able to start the hardware and start flying.
