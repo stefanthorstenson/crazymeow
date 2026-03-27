@@ -4,8 +4,8 @@
 | Field | Value |
 |---|---|
 | Software | Crazypilot |
-| Requirements version | 1.4 |
-| Status | Final |
+| Version | 1.4 |
+| Status | Approved |
 
 ## Results
 

@@ -1,5 +1,8 @@
 # TODO - still to be specified
 
+- requirements.txt file - can it be renamed?
+- Virtual environment as requirement defined?
+
 # CrazyMeow software requirements specification
 
 A toy version of the crazyflie, with a complete hardware setup to be able to fly. The focus of the CrazyMeow is ease of use and safety. A kid should be able to start the hardware and start flying.
@@ -245,6 +248,7 @@ When user says "implement", the following should also also be done, in sequence:
 - Each software should be tested against its requirements document. Output:
     Test reports (Pass, fail, cannot be tested)
     Test coverage statistics to requirements
+- Write documentation
 
 ### Exceptions for testing
 
@@ -264,11 +268,11 @@ The documentation should include:
 - Guide for how to start flying
 - Guide to debug
     - Path to log files
-- Requirements specifications and design specifications for all included software, to be placed in doc/
+- Requirements specifications, design specifications and test reports for all included software, to be placed in doc/
 
 All guides should be placed in README.md
 
-Requirements specifications and design specifications should have this information in the beginning:
+Requirements specifications, design specifications and test reports should have this information in the beginning:
 
 Header: Document Info
 
