@@ -32,6 +32,8 @@ def map_axes(joystick) -> dict:
         detected_index = None
         detected_inverted = None
 
+        baseline = _get_all_axes(joystick)
+
         # Wait for a significant axis movement
         while detected_index is None:
             try:
@@ -41,10 +43,11 @@ def map_axes(joystick) -> dict:
                 print(f"\r  Live: {values_str}    ", end="", flush=True)
 
                 for idx, value in axes.items():
-                    if abs(value) > _DETECTION_THRESHOLD:
+                    delta = value - baseline.get(idx, 0.0)
+                    if abs(delta) > _DETECTION_THRESHOLD:
                         detected_index = idx
-                        # Positive displacement = not inverted (expected positive direction)
-                        detected_inverted = value < 0
+                        # Positive delta = not inverted (expected positive direction)
+                        detected_inverted = delta < 0
                         break
 
                 time.sleep(0.02)

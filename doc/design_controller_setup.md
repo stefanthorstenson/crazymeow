@@ -103,7 +103,8 @@ crazymeow/
 - For each role:
   - Print instructions describing which physical stick to move (e.g., "Push the left stick UP for altitude rate, then release.").
   - Poll pygame events in a loop, showing live axis values for all axes on screen.
-  - Detect which axis index has the largest absolute displacement above a threshold (0.3) — that is the selected axis.
+  - Before prompting the user to move the stick, sample all axes to establish a per-axis baseline (resting position).
+  - Detect which axis index has the largest absolute **delta from its baseline** above a threshold (0.3) — that is the selected axis. This correctly handles axes that rest at non-zero values (e.g. triggers resting at −1.0).
   - Record the sign of the displacement at detection time; if the displacement is negative when a positive input is expected, set `inverted: true`.
   - Wait for the axis to return near zero before moving to the next role (to avoid bleed-over detection).
 - Return a mapping dict in the `controller_mapping.json` axes schema.
@@ -177,9 +178,9 @@ All user-facing output goes to stdout. Input is read with `input()`. Live axis d
 
 The wizard is inherently sequential (one step at a time), so a single-threaded design is natural. pygame event polling in a tight loop is sufficient for responsive axis detection without background threads.
 
-### Axis detection by largest displacement
+### Axis detection by largest delta from baseline
 
-Detecting the axis with the largest absolute displacement above a threshold is robust against slight drift on other axes and does not require the user to move the stick to a precise position. A threshold of 0.3 (30 % of range) gives a good balance between sensitivity and false-positive rejection.
+Before each mapping prompt, all axis values are sampled to establish a per-axis baseline (resting position). Detection is based on the largest absolute delta from that baseline above a threshold of 0.3 (30 % of range). This is robust against axes that rest at non-zero values (e.g. Xbox triggers rest at −1.0) and against slight drift on other axes. It does not require the user to move the stick to a precise position.
 
 ### Inversion recorded at mapping time, not at runtime
 

@@ -1,6 +1,7 @@
 # TODO - still to be specified
 
 - requirements.txt file - can it be renamed?
+- update configure crazyflie to ask if the current URI should be used or if a new one should be written.
 
 # CrazyMeow software requirements specification
 

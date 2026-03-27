@@ -60,7 +60,7 @@ def main():
         mem = mems[0]
         cf_instance["mem"] = mem
 
-        def read_cb(mem_obj):
+        def read_cb(mem_obj, *args):
             print(f"Current EEPROM: channel={mem_obj.elements.get('radio_channel')}, "
                   f"speed={mem_obj.elements.get('radio_speed')}, "
                   f"address={hex(mem_obj.elements.get('radio_address', 0))}")
@@ -102,7 +102,7 @@ def main():
     mem.elements["radio_address"] = address
     mem.elements["version"] = 1
 
-    def write_cb(mem_obj):
+    def write_cb(mem_obj, *args):
         print("EEPROM write successful.")
         write_done.set()
 
