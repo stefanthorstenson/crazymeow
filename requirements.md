@@ -2,6 +2,9 @@
 
 - requirements.txt file - can it be renamed?
 - update configure crazyflie to ask if the current URI should be used or if a new one should be written.
+- use commander instead of high-level commander to send speed setpoints
+- go back to initializing if data is not ok
+- some axes are inverted, needs fixing
 
 # CrazyMeow software requirements specification
 
@@ -133,6 +136,8 @@ If any part of the system is rebooted, the system should go back to state Initia
 
 The system should be able to handle that the Crazyflie shuts down and needs to be rebooted, without having to reboot any other hardware.
 
+Note: The current implementation in the Crazyflie means that if the Raspberry Pi is rebooted after flying, the Crazyflie also needs to be rebooted before it can fly again. This is due to that the Crazyflie will end up in state Locked after not receiving set points, and the only way out is reboot.
+
 ### Initializing
 
 When the system is starting up.
@@ -153,12 +158,21 @@ When the Crazyflie is on the ground and ready to take off.
 
 Crazypilot should send no commands.
 
+#### State exits
+
 When 
 
 - the user moves the joystick that corresponds to altitude to more than 50 % of positive maximum of the joystick, and
 - the crazyflie reports that the battery is not low on power
 
 the system should go into state Take-off.
+
+If 
+
+- not all needed telemetry is received from the Crazyflie to the Raspberry Pi, or
+- battery state is not 0 (normal)
+
+the system shall go to state Initializing.
 
 ### Take-off
 
