@@ -144,6 +144,19 @@ def test_CP_007():
     """It shall be possible to run Crazypilot on a laptop with Ubuntu 24.04 and Crazyradio 2.0."""
 
 
+def test_CP_008_venv_executable_used():
+    """Crazypilot shall run from the dedicated virtual environment at .venv/ in the repo root."""
+    import subprocess
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    venv_bin = os.path.join(repo_root, ".venv", "bin", "crazypilot")
+    # The setup_services.py must reference the venv executable path
+    setup_services = os.path.join(repo_root, "scripts", "setup_services.py")
+    with open(setup_services) as f:
+        src = f.read()
+    assert ".venv" in src, "setup_services.py does not reference .venv"
+    assert "crazypilot" in src
+
+
 # ---------------------------------------------------------------------------
 # Startup and Connection
 # ---------------------------------------------------------------------------

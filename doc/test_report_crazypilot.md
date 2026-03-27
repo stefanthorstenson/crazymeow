@@ -20,6 +20,7 @@
 | CP-005 | Does not download from the internet during operation | Cannot be tested |
 | CP-006 | Code is well modularized | Pass |
 | CP-007 | Can run on Ubuntu 24.04 laptop with Crazyradio 2.0 | Cannot be tested |
+| CP-008 | Runs from dedicated virtual environment at `.venv/` | Pass |
 | CP-010 | Starts automatically on Raspberry Pi boot | Cannot be tested |
 | CP-011 | Continuously attempts to connect to Crazyflie | Cannot be tested |
 | CP-012 | Continuously attempts to connect to Bluetooth controller | Cannot be tested |
@@ -67,8 +68,8 @@
 | CP-086 | In Initializing, CF data ok and controller connected triggers Standby | Pass |
 
 ## Coverage
-- Total requirements: 55
-- Pass: 38
+- Total requirements: 56
+- Pass: 39
 - Fail: 0
 - Cannot be tested: 17
 - Coverage (Pass / (Pass + Fail)): 100%

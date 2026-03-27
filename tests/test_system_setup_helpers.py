@@ -213,6 +213,24 @@ def test_SS_015_references_requirements_txt():
     assert "requirements.txt" in src, "setup_dependencies.py does not reference requirements.txt"
 
 
+def test_SS_015_creates_venv():
+    """setup_dependencies.py shall create a virtual environment at .venv/ in the repo root."""
+    path = os.path.join(_scripts_dir(), "setup_dependencies.py")
+    with open(path) as f:
+        src = f.read()
+    assert ".venv" in src, "setup_dependencies.py does not reference .venv"
+    assert "venv.create" in src or "venv_dir" in src.lower() or "VENV_DIR" in src
+
+
+def test_SS_015_installs_into_venv():
+    """setup_dependencies.py shall install packages into the virtual environment."""
+    path = os.path.join(_scripts_dir(), "setup_dependencies.py")
+    with open(path) as f:
+        src = f.read()
+    assert "_VENV_PYTHON" in src or "venv_python" in src.lower(), \
+        "setup_dependencies.py does not use venv Python for pip install"
+
+
 # ---------------------------------------------------------------------------
 # Service Setup
 # ---------------------------------------------------------------------------

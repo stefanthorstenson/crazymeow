@@ -62,10 +62,11 @@ Scripts are run directly (`python scripts/<script>.py`) and are not installed as
 **Purpose:** Installs all Python packages and system packages required by the system.
 
 **Key responsibilities:**
-- Use `sudo_helper` to run `apt-get install` for any required system packages (e.g. `python3-pygame`).
-- Run `pip install` for Python packages (e.g. `cflib`, `pygame`). A `requirements.txt` in the repository root is used as the package list.
-- Clone any required external repositories (e.g. Crazyradio firmware) using `git_helper`.
-- Print a summary of what was installed when complete.
+- Use `sudo_helper` to run `apt-get install` for required system packages (`python3-venv`, `python3-pip`, `libusb-1.0-0`).
+- Create a Python virtual environment at `<repo_root>/.venv` using the standard `venv` module (skipped if it already exists).
+- Install Python packages from `requirements.txt` into the virtual environment using the venv's `pip`.
+- Install the crazymeow package itself into the virtual environment using `pip install -e <repo_root>`.
+- Print the venv path and the activate command on completion.
 
 ---
 
@@ -173,7 +174,7 @@ Description=Crazypilot drone controller
 After=bluetooth.target
 
 [Service]
-ExecStart=/usr/local/bin/crazypilot
+ExecStart=<repo_root>/.venv/bin/crazypilot
 Restart=always
 User=<current user>
 

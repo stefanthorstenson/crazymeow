@@ -1,6 +1,7 @@
 import sys
 import os
 import subprocess
+import venv
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -9,9 +10,11 @@ from utils.git_helper import clone
 
 _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _REQUIREMENTS_TXT = os.path.join(_REPO_ROOT, "requirements.txt")
+_VENV_DIR = os.path.join(_REPO_ROOT, ".venv")
+_VENV_PYTHON = os.path.join(_VENV_DIR, "bin", "python")
 
 _SYSTEM_PACKAGES = [
-    "python3-pygame",
+    "python3-venv",
     "python3-pip",
     "libusb-1.0-0",
 ]
@@ -27,16 +30,34 @@ def main():
         f"Install system packages: {', '.join(_SYSTEM_PACKAGES)}",
     )
 
-    # Install Python packages from requirements.txt
-    print("\nInstalling Python packages from requirements.txt...")
+    # Create virtual environment
+    if not os.path.isdir(_VENV_DIR):
+        print(f"\nCreating virtual environment at {_VENV_DIR}...")
+        venv.create(_VENV_DIR, with_pip=True)
+    else:
+        print(f"\nVirtual environment already exists at {_VENV_DIR}")
+
+    # Install Python packages into venv
+    print("\nInstalling Python packages into virtual environment...")
     result = subprocess.run(
-        [sys.executable, "-m", "pip", "install", "-r", _REQUIREMENTS_TXT]
+        [_VENV_PYTHON, "-m", "pip", "install", "-r", _REQUIREMENTS_TXT]
     )
     if result.returncode != 0:
         print("pip install failed.")
         sys.exit(1)
 
+    # Install the crazymeow package itself into venv
+    print("\nInstalling crazymeow package into virtual environment...")
+    result = subprocess.run(
+        [_VENV_PYTHON, "-m", "pip", "install", "-e", _REPO_ROOT]
+    )
+    if result.returncode != 0:
+        print("Package install failed.")
+        sys.exit(1)
+
     print("\nAll dependencies installed.")
+    print(f"Virtual environment: {_VENV_DIR}")
+    print(f"Activate with: source {_VENV_DIR}/bin/activate")
 
 
 if __name__ == "__main__":

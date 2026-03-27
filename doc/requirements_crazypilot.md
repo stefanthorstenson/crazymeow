@@ -31,6 +31,7 @@ Crazypilot is the software running on the Raspberry Pi that reads controller inp
 | CP-005 | Crazypilot shall not download anything from the internet during operation (package installation via pip or apt-get is excluded from this restriction). |
 | CP-006 | The code shall be well modularized and easy to maintain. |
 | CP-007 | It shall be possible to run Crazypilot on a laptop with Ubuntu 24.04 and a Crazyradio 2.0 with minimum manual setup. |
+| CP-008 | Crazypilot shall run from the dedicated Python virtual environment located at `.venv/` in the repository root. |
 
 ### Startup and Connection
 

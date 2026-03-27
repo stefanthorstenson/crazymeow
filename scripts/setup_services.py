@@ -6,9 +6,11 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from utils.sudo_helper import run_sudo
 
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_VENV_DIR = os.path.join(_REPO_ROOT, ".venv")
 _SERVICE_NAME = "crazypilot"
 _SERVICE_PATH = f"/etc/systemd/system/{_SERVICE_NAME}.service"
-_CRAZYPILOT_BIN = "/usr/local/bin/crazypilot"
+_CRAZYPILOT_BIN = os.path.join(_VENV_DIR, "bin", "crazypilot")
 
 
 def _generate_service_unit(username: str) -> str:

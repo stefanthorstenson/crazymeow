@@ -41,7 +41,7 @@ Note: A single tool may fulfill more than one requirement.
 
 | ID | Requirement |
 |---|---|
-| SS-015 | There shall be a tool to install all software dependencies required by the system, including Python packages and any necessary system packages. |
+| SS-015 | There shall be a tool to install all software dependencies required by the system: it shall create a dedicated Python virtual environment at `.venv/` in the repository root, and install all required Python packages and the crazymeow package into it. |
 
 ### Service Setup
 

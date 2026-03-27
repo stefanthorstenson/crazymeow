@@ -1,7 +1,6 @@
 # TODO - still to be specified
 
 - requirements.txt file - can it be renamed?
-- Virtual environment as requirement defined?
 
 # CrazyMeow software requirements specification
 
@@ -237,6 +236,8 @@ No code may run code that needs super user (sudo) priveleges.
 No code may download from the internet (except installing packages using pip or apt-get).
 
 It should be possible to run the crazypilot and the controller setup on a laptop with Ubuntu 24.04 and a Crazyradio 2.0 with minimum manual work.
+
+Any Python should run from a Python virtual environment that is dedicated for this system.
 
 ## AI coding process
 

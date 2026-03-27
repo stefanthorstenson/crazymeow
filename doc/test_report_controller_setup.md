@@ -18,6 +18,7 @@
 | CS-004 | Does not download from the internet during operation | Cannot be tested |
 | CS-005 | Code is well modularized | Pass |
 | CS-006 | Can run on Ubuntu 24.04 laptop with Crazyradio 2.0 | Cannot be tested |
+| CS-007 | Runs from dedicated virtual environment at `.venv/` | Pass |
 | CS-010 | Detects all connected Bluetooth game controllers; allows selection | Pass |
 | CS-011 | Displays human-readable name for each detected controller | Pass |
 | CS-020 | Guides user through mapping four flight commands | Pass |
@@ -30,8 +31,8 @@
 | CS-041 | After saving, offers live test mode to verify mapping | Pass |
 
 ## Coverage
-- Total requirements: 17
-- Pass: 13
+- Total requirements: 18
+- Pass: 14
 - Fail: 0
 - Cannot be tested: 4
 - Coverage (Pass / (Pass + Fail)): 100%

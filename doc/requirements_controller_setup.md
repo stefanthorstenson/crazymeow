@@ -29,6 +29,7 @@ The controller mapping setup CLI is a command-line tool for interactively config
 | CS-004 | The CLI shall not download anything from the internet during operation (package installation via pip or apt-get is excluded from this restriction). |
 | CS-005 | The code shall be well modularized and easy to maintain. |
 | CS-006 | It shall be possible to run the CLI on a laptop with Ubuntu 24.04 and a Crazyradio 2.0 with minimum manual setup. |
+| CS-007 | The controller mapping setup CLI shall run from the dedicated Python virtual environment located at `.venv/` in the repository root. |
 
 ### Controller Detection
 

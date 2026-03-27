@@ -30,10 +30,10 @@ cd ~/crazymeow
 ### 3. Install dependencies
 
 ```bash
-python scripts/setup_dependencies.py
+python3 scripts/setup_dependencies.py
 ```
 
-This installs all required Python packages (cflib, pygame) and any system packages. Each `sudo` or `git clone` call will prompt for confirmation before executing.
+This installs required system packages, creates a Python virtual environment at `.venv/` inside the repository, and installs all Python dependencies and the crazymeow package into it. Each `sudo` call prompts for confirmation before executing.
 
 ### 4. Enable SSH (if not done during OS setup)
 
@@ -122,12 +122,18 @@ Crazypilot and the controller mapping setup can be run on a laptop with Ubuntu 2
 ```bash
 git clone <this-repo-url> ~/crazymeow
 cd ~/crazymeow
-pip install -e .
+python3 scripts/setup_dependencies.py
+```
+
+This creates `.venv/` and installs all dependencies into it. Activate it before running any commands:
+
+```bash
+source .venv/bin/activate
 ```
 
 ### Configure
 
-Run steps 5–8 from the system setup guide above, substituting `~/crazymeow` for the repo path. The setup scripts and `controller-setup` command work the same on Ubuntu 24.04.
+Run steps 5–8 from the system setup guide above (with the venv active). The setup scripts and `controller-setup` command work the same on Ubuntu 24.04.
 
 ### Run crazypilot
 

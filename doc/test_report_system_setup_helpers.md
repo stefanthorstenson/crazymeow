@@ -18,7 +18,7 @@
 | SS-010 | Tool to write radio address to Crazyflie over USB | Cannot be tested |
 | SS-011 | Tool to configure Crazyflie URI, stored in `~/.config/crazypilot/crazypilot_config.json` | Pass |
 | SS-012 | Tool to verify configured Crazyflie URI is reachable | Cannot be tested |
-| SS-015 | Tool to install all software dependencies | Pass |
+| SS-015 | Tool to install all dependencies; creates `.venv/` and installs packages into it | Pass |
 | SS-020 | Tool to set up all services necessary for auto-starting Crazypilot on boot | Pass |
 | SS-030 | Tool to enable SSH access on the Raspberry Pi | Pass |
 

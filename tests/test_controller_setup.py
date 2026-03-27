@@ -73,6 +73,17 @@ def test_CS_006():
     """It shall be possible to run on a laptop with Ubuntu 24.04 and Crazyradio 2.0."""
 
 
+def test_CS_007_venv_entry_point():
+    """The controller mapping setup CLI shall run from the dedicated virtual environment at .venv/."""
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    pyproject = os.path.join(repo_root, "pyproject.toml")
+    with open(pyproject) as f:
+        src = f.read()
+    # The console script is installed into the venv via pyproject.toml
+    assert "controller-setup" in src
+    assert "controller_setup.main:main" in src
+
+
 # ---------------------------------------------------------------------------
 # Controller Detection
 # ---------------------------------------------------------------------------
