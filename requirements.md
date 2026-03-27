@@ -239,24 +239,6 @@ It should be possible to run the crazypilot and the controller setup on a laptop
 
 Any Python should run from a Python virtual environment that is dedicated for this system.
 
-## AI coding process
-
-When user says "implement", the following should also also be done, in sequence:
-
-- Requirements specification for each software should be created, with unique IDs for each requirement. Changes or new documents need approval from user before continuing to next step, and the version must match the software specification (this document).
-- Design specification for each software should be created, based on the requirements document. Changes or new documents need approval from user before continuing to next step, and the version must match the software specification (this document).
-- Implementation of software according to specifications.
-- Each software should be tested against its requirements document. Output:
-    Test reports (Pass, fail, cannot be tested)
-    Test coverage statistics to requirements
-- Write documentation
-
-### Exceptions for testing
-
-- Process requirements
-- Design and architecture requirements
-- Documentation requirements
-
 ## Documentation
 
 The documentation should include:
