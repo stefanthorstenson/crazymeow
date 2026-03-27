@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Software | Controller Mapping Setup CLI |
-| Version | 1.3 |
+| Version | 1.4 |
 | Status | Approved |
 
 ---
@@ -33,6 +33,29 @@ pygame is used for all controller interaction (detection, axis polling). There i
 | `pygame` (joystick module) | Controller detection and axis reading |
 | `json` | Reading and writing the mapping file |
 | `pathlib` | Config directory creation |
+
+### Directory structure
+
+```
+crazymeow/
+├── pyproject.toml
+├── requirements.txt
+├── crazypilot/
+│   ├── __init__.py
+│   └── <unit>.py
+├── controller_setup/
+│   ├── __init__.py
+│   └── <unit>.py          (one file per module described in this document)
+├── scripts/
+│   ├── utils/
+│   │   ├── __init__.py
+│   │   └── <helper>.py
+│   └── <script>.py
+├── doc/
+└── README.md
+```
+
+`controller_setup` is installed as a Python package via `pyproject.toml`. The `controller-setup` console command maps to `controller_setup.main:main`.
 
 ---
 

@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Software | System Setup Helpers |
-| Version | 1.3 |
+| Version | 1.4 |
 | Status | Approved |
 
 ---
@@ -20,19 +20,30 @@ System setup helpers is a collection of independent Python scripts for one-time 
 
 Each tool is a standalone Python script with a `main()` function and a `if __name__ == "__main__"` guard. Scripts share two utility modules (`sudo_helper` and `git_helper`) that enforce the confirmation requirement before any privileged or cloning operation.
 
+No shared state exists between scripts. Each script is self-contained and exits when its task is complete.
+
+### Directory structure
+
 ```
-scripts/
-    setup_dependencies.py    # install Python packages and system packages
-    configure_crazyflie.py   # write radio address + set URI in config
-    test_connection.py       # verify Crazyflie URI is reachable
-    setup_services.py        # install systemd service for auto-start
-    setup_ssh.py             # enable SSH on Raspberry Pi
-utils/
-    sudo_helper.py           # confirmed sudo execution
-    git_helper.py            # confirmed git clone execution
+crazymeow/
+├── pyproject.toml
+├── requirements.txt
+├── crazypilot/
+│   ├── __init__.py
+│   └── <unit>.py
+├── controller_setup/
+│   ├── __init__.py
+│   └── <unit>.py
+├── scripts/
+│   ├── utils/
+│   │   ├── __init__.py
+│   │   └── <helper>.py    (one file per utility module described in this document)
+│   └── <script>.py        (one file per tool described in this document)
+├── doc/
+└── README.md
 ```
 
-No shared state exists between scripts. Each script is self-contained and exits when its task is complete.
+Scripts are run directly (`python scripts/<script>.py`) and are not installed as a package. `scripts/utils/` is importable by each script via its package path.
 
 ### Key libraries
 
@@ -63,12 +74,14 @@ No shared state exists between scripts. Each script is self-contained and exits 
 **Purpose:** Writes the radio address to the Crazyflie over USB and records the resulting URI in `~/.config/crazypilot/crazypilot_config.json` for use by Crazypilot.
 
 **Key responsibilities:**
-- Prompt the user to enter the desired radio channel and address (or use defaults).
-- Use cflib's USB bootloader / configuration API to write the radio address to the connected Crazyflie (equivalent to "Configure 2.x" in the Crazyflie client).
+- Prompt the user to enter the desired radio channel, data rate, and address (or use defaults).
+- Connect to the Crazyflie over USB (`usb://0`) in normal firmware mode (no bootloader required).
+- Read the current EEPROM configuration via `cf.mem.get_mems(MemoryElement.TYPE_I2C)[0]` and `mem.update(cb)`.
+- Write updated values (`radio_channel`, `radio_speed`, `radio_address`, `version=1`) back via `mem.write_data(cb)`. New settings take effect on next power cycle.
 - Construct the resulting `radio://` URI and write it to `~/.config/crazypilot/crazypilot_config.json` (creating the file and directory if necessary).
-- Print the resulting URI so the user can verify it.
+- Print the resulting URI and remind the user to power-cycle the Crazyflie.
 
-**Note:** This script requires the Crazyflie to be connected via USB.
+**Note:** This script requires the Crazyflie to be connected via USB and running normal firmware.
 
 ---
 

@@ -5,14 +5,14 @@
 | Field | Value |
 |---|---|
 | Software | Crazypilot |
-| Version | 1.3 |
+| Version | 1.4 |
 | Status | Approved |
 
 ---
 
 ## Overview
 
-Crazypilot runs on the Raspberry Pi and is responsible for reading Bluetooth controller input and sending velocity setpoint commands to the Crazyflie drone over Crazyradio. It implements a state machine that manages the full flight lifecycle (Standby, Take-off, Flying, Landing, Crazyflie error, Controller error), enforces safety limits, and starts automatically on boot via a systemd service.
+Crazypilot runs on the Raspberry Pi and is responsible for reading Bluetooth controller input and sending velocity setpoint commands to the Crazyflie drone over Crazyradio. It implements a state machine that manages the full flight lifecycle (Initializing, Standby, Take-off, Flying, Landing, Crazyflie error, Controller error), enforces safety limits, and starts automatically on boot via a systemd service.
 
 ---
 
@@ -48,6 +48,29 @@ crazypilot [--controller-mapping <path>]
 
 Default mapping path: `~/.config/crazypilot/controller_mapping.json`.
 
+### Directory structure
+
+```
+crazymeow/
+├── pyproject.toml
+├── requirements.txt
+├── crazypilot/
+│   ├── __init__.py
+│   └── <unit>.py          (one file per module described in this document)
+├── controller_setup/
+│   ├── __init__.py
+│   └── <unit>.py
+├── scripts/
+│   ├── utils/
+│   │   ├── __init__.py
+│   │   └── <helper>.py
+│   └── <script>.py
+├── doc/
+└── README.md
+```
+
+`crazypilot` is installed as a Python package via `pyproject.toml`. The `crazypilot` console command maps to `crazypilot.main:main`.
+
 ---
 
 ## Modules
@@ -70,18 +93,19 @@ Default mapping path: `~/.config/crazypilot/controller_mapping.json`.
 **Purpose:** Core flight logic. Evaluates sensor and controller data on each loop tick and transitions between states. Computes and issues setpoint commands.
 
 **Key responsibilities:**
-- Maintain current state (`Standby`, `TakeOff`, `Flying`, `Landing`, `CrazyflieError`, `ControllerError`).
+- Maintain current state (`Initializing`, `Standby`, `TakeOff`, `Flying`, `Landing`, `CrazyflieError`, `ControllerError`).
 - On each tick: read latest telemetry from `CrazyflieInterface` and latest axis values from `ControllerInput`; apply state logic and send commands via `CrazyflieInterface`.
 - Maintain an internal `z_target` (float, metres) representing the current commanded absolute altitude. Updated each tick by integrating the altitude rate command: `z_target += altitude_rate * dt`. Clamped to [0.0, 1.2] m.
 - Apply safety clamping (xy speed cap 1.0 m/s, altitude rate cap 0.3 m/s) before issuing any setpoint.
 - Apply 5 % deadzone to all joystick axes before use.
 - Track timeouts (controller outage 0.5 s, all-zero input 10 s, controller error auto-land 2.0 s, crazyflie outage 0.5 s) using monotonic timestamps.
 - Monitor reported altitude and xy speed each tick for safety violations: if altitude > 1.5 m or xy speed > 1.2 m/s, start a 1 s violation timer; reset the timer if the condition clears; transition to Landing if the timer expires.
-- Monitor battery voltage each tick: in Standby, only allow transition to TakeOff if battery voltage > 3.5 V; in TakeOff and Flying, transition to Landing immediately if battery voltage < 3.35 V.
+- Monitor battery voltage each tick: in Standby, only allow transition to TakeOff if battery voltage > 3.5 V; in TakeOff and Flying, transition to Landing immediately if battery voltage < 3.35 V. Note: battery voltage is always available by the time Standby is reached, since Initializing requires telemetry to be OK before transitioning.
 
 **State transition summary:**
 
 ```
+Initializing  → Standby         : CF data OK  AND  controller connected
 Standby       → TakeOff         : altitude axis > 50 % positive max  AND  battery > 3.5 V
 TakeOff       → Flying          : altitude > 0.35 m
 TakeOff       → CrazyflieError  : CF data gap > 0.5 s
@@ -231,7 +255,7 @@ A single `LogConfig` block is created and started in the `connected` callback. I
 | `stateEstimate.vy` | `float` | Velocity in Crazyflie body y-direction in m/s |
 | `pm.vbat` | `float` | Battery voltage in volts |
 
-The callback stores all three values atomically under a `threading.Lock`. The `is_data_ok()` staleness check is driven by the timestamp of the last successful callback, not by the connection status alone — this ensures a connected-but-silent Crazyflie is still treated as an error.
+The callback stores all values atomically under a `threading.Lock`. The `is_data_ok()` staleness check is driven by the timestamp of the last successful callback, not by the connection status alone — this ensures a connected-but-silent Crazyflie is still treated as an error.
 
 ### Setpoint API
 

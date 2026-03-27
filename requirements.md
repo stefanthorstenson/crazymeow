@@ -10,7 +10,7 @@ A toy version of the crazyflie, with a complete hardware setup to be able to fly
 
 | Field | Value |
 |---|---|
-| Version | 1.3 |
+| Version | 1.4 |
 
 ## Definitions
 
@@ -110,11 +110,24 @@ Note: There is no need to signal that the system is ready.
 
 The following subsections describe the different system states.
 
-The system should start in state Standby.
+The system should start in state Initializing.
 
-If any part of the system is rebooted, the system should go back to state Standby.
+If any part of the system is rebooted, the system should go back to state Initializing.
 
 The system should be able to handle that the Crazyflie shuts down and needs to be rebooted, without having to reboot any other hardware.
+
+### Initializing
+
+When the system is starting up.
+
+#### State exits
+
+When
+
+- all needed telemetry is received from the Crazyflie to the Raspberry Pi, and
+- the Raspberry Pi is connected to the controller
+
+the system shall go to state Standby.
 
 ### Standby
 

@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Software | Crazypilot |
-| Version | 1.3 |
+| Version | 1.4 |
 | Status | Approved |
 
 ---
@@ -37,7 +37,7 @@ Crazypilot is the software running on the Raspberry Pi that reads controller inp
 | ID | Requirement |
 |---|---|
 | CP-010 | Crazypilot shall start automatically when the Raspberry Pi boots, without any manual intervention. |
-| CP-011 | Crazypilot shall continuously attempt to connect to the Crazyflie (using the hard-coded URI) until a connection is established. |
+| CP-011 | Crazypilot shall continuously attempt to connect to the Crazyflie until a connection is established. |
 | CP-012 | Crazypilot shall continuously attempt to connect to the Bluetooth controller until a connection is established. |
 | CP-013 | Crazypilot shall be able to connect to the Crazyflie and the Bluetooth controller in any order relative to when Crazypilot starts. |
 | CP-014 | Crazypilot shall resume normal operation if the Crazyflie is rebooted, without requiring any other hardware or software to be restarted. |
@@ -62,9 +62,16 @@ Crazypilot is the software running on the Raspberry Pi that reads controller inp
 
 | ID | Requirement |
 |---|---|
-| CP-060 | Crazypilot shall implement the following system states: Standby, Take-off, Flying, Landing, Crazyflie error, Controller error. |
-| CP-061 | Crazypilot shall start in state Standby. |
-| CP-062 | If any part of the system is rebooted, Crazypilot shall transition to state Standby. |
+| CP-060 | Crazypilot shall implement the following system states: Initializing, Standby, Take-off, Flying, Landing, Crazyflie error, Controller error. |
+| CP-061 | Crazypilot shall start in state Initializing. |
+| CP-062 | If any part of the system is rebooted, Crazypilot shall transition to state Initializing. |
+
+#### State Initializing
+
+| ID | Requirement |
+|---|---|
+| CP-085 | In state Initializing, Crazypilot shall not send any commands to the Crazyflie. |
+| CP-086 | In state Initializing, when Crazyflie telemetry is being received and the Bluetooth controller is connected, Crazypilot shall transition to state Standby. |
 
 #### State Standby
 

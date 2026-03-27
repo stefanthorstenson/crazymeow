@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Software | Controller Mapping Setup CLI |
-| Version | 1.3 |
+| Version | 1.4 |
 | Status | Approved |
 
 ---
