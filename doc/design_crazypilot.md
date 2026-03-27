@@ -261,7 +261,7 @@ A single `LogConfig` block is created and started in the `connected` callback. I
 | `stateEstimate.vx` | `float` | Velocity in Crazyflie body x-direction in m/s |
 | `stateEstimate.vy` | `float` | Velocity in Crazyflie body y-direction in m/s |
 | `pm.vbat` | `float` | Battery voltage in volts |
-| `pm.state` | `int8` | Power management state: 0=battery, 1=charging, 2=charged, 3=low-power, 4=shutdown |
+| `pm.state` | `int8_t` | Power management state: 0=battery, 1=charging, 2=charged, 3=low-power, 4=shutdown |
 
 The callback stores all values atomically under a `threading.Lock`. The `is_data_ok()` staleness check is driven by the timestamp of the last successful callback, not by the connection status alone — this ensures a connected-but-silent Crazyflie is still treated as an error.
 

@@ -109,7 +109,7 @@ class CrazyflieInterface:
         log_config.add_variable("stateEstimate.vx", "float")
         log_config.add_variable("stateEstimate.vy", "float")
         log_config.add_variable("pm.vbat", "float")
-        log_config.add_variable("pm.state", "int8")
+        log_config.add_variable("pm.state", "int8_t")
 
         self._log_config = log_config
         try:
