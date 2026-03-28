@@ -1,12 +1,14 @@
 # TODO - still to be specified
 
-- requirements.txt file - can it be renamed?
-- update configure crazyflie to ask if the current URI should be used or if a new one should be written.
-- use commander instead of high-level commander to send speed setpoints
-- go back to initializing if data is not ok
-- some axes are inverted, needs fixing
+In order of priority.
+
+- State machine goes into Controller error very often
 - yaw rate is lower than intended
+- use commander instead of high-level commander to send speed setpoints
 - controller outage should be increased
+- go back to initializing if data is not ok
+- update configure crazyflie to ask if the current URI should be used or if a new one should be written.
+- requirements.txt file - can it be renamed?
 
 # CrazyMeow software requirements specification
 
