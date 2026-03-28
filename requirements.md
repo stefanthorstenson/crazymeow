@@ -5,6 +5,8 @@
 - use commander instead of high-level commander to send speed setpoints
 - go back to initializing if data is not ok
 - some axes are inverted, needs fixing
+- yaw rate is lower than intended
+- controller outage should be increased
 
 # CrazyMeow software requirements specification
 
@@ -14,7 +16,7 @@ A toy version of the crazyflie, with a complete hardware setup to be able to fly
 
 | Field | Value |
 |---|---|
-| Version | 1.5 |
+| Version | 1.6 |
 
 ## Definitions
 
@@ -35,9 +37,9 @@ Component: Highest level of software on Raspberry Pi, as an isolated piece of so
 
 ## Hardware
 
-Raspberry Pi with a Crazyradio 2.0
-Crazyflie 2.1 with Flow Deck v2
-Bluetooth controller
+- Raspberry Pi with a Crazyradio 2.0
+- Crazyflie 2.1 with Flow Deck v2
+- Bluetooth controller
 
 ## System setup
 
@@ -271,6 +273,12 @@ It should be possible to run the crazypilot and the controller setup on a laptop
 
 Any Python should run from a Python virtual environment that is dedicated for this system.
 
+Coordinate system:
+
+- X: forward
+- Y: left
+- Z: up
+
 ## Documentation
 
 The documentation should include:
@@ -300,6 +308,10 @@ Header: Document Info
 When updating the version, the status must be set to draft.
 
 Document heading should not be numbered.
+
+Component requirements should have unique IDs.
+
+Design documents 
 
 ## Other
 

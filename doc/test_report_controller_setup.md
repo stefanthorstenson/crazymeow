@@ -4,7 +4,7 @@
 | Field | Value |
 |---|---|
 | Software | Controller Mapping Setup CLI |
-| Version | 1.4 |
+| Version | 1.6 |
 | Status | Approved |
 
 ## Results
@@ -24,6 +24,7 @@
 | CS-020 | Guides user through mapping four flight commands | Pass |
 | CS-021 | Automatically detects which physical axis was moved | Cannot be tested |
 | CS-022 | Detects and records correct polarity (inversion) for each axis | Pass |
+| CS-022a | Positive direction per axis: UP for altitude_rate/velocity_x, LEFT for yaw_rate/velocity_y | Pass |
 | CS-023 | Displays live axis values during mapping | Cannot be tested |
 | CS-030 | Mapping saved to `~/.config/crazypilot/controller_mapping.json` as pretty-printed JSON | Pass |
 | CS-032 | If config already exists, informs user and asks for confirmation before overwriting | Pass |
@@ -31,8 +32,8 @@
 | CS-041 | After saving, offers live test mode to verify mapping | Pass |
 
 ## Coverage
-- Total requirements: 18
-- Pass: 14
+- Total requirements: 19
+- Pass: 15
 - Fail: 0
 - Cannot be tested: 4
 - Coverage (Pass / (Pass + Fail)): 100%

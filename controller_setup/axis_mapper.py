@@ -4,9 +4,9 @@ import pygame
 
 _AXIS_ROLES = [
     ("altitude_rate", "Push the LEFT stick UP for altitude rate, then release."),
-    ("yaw_rate", "Push the LEFT stick RIGHT for yaw rate (turn right), then release."),
+    ("yaw_rate", "Push the LEFT stick LEFT for yaw rate (positive direction), then release."),
     ("velocity_x", "Push the RIGHT stick UP for forward velocity, then release."),
-    ("velocity_y", "Push the RIGHT stick RIGHT for right velocity, then release."),
+    ("velocity_y", "Push the RIGHT stick LEFT for positive y velocity (left), then release."),
 ]
 
 _DETECTION_THRESHOLD = 0.3

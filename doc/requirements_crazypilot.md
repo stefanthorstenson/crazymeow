@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Software | Crazypilot |
-| Version | 1.5 |
+| Version | 1.6 |
 | Status | Approved |
 
 ---
@@ -32,6 +32,7 @@ Crazypilot is the software running on the Raspberry Pi that reads controller inp
 | CP-006 | The code shall be well modularized and easy to maintain. |
 | CP-007 | It shall be possible to run Crazypilot on a laptop with Ubuntu 24.04 and a Crazyradio 2.0 with minimum manual setup. |
 | CP-008 | Crazypilot shall run from the dedicated Python virtual environment located at `.venv/` in the repository root. |
+| CP-009 | Crazypilot shall use the Crazyflie body coordinate system: X = forward (positive = forward), Y = left (positive = left), Z = up (positive = up). All velocity setpoints shall follow this convention. |
 
 ### Startup and Connection
 

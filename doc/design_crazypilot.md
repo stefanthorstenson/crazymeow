@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Software | Crazypilot |
-| Version | 1.5 |
+| Version | 1.6 |
 | Status | Approved |
 
 ---
@@ -30,6 +30,10 @@ Crazypilot is a single Python process with four concurrent activities running in
 | Log rotation | Background thread that periodically deletes log files older than 24 hours |
 
 Shared state between threads is protected by `threading.Lock` or `threading.Event` as appropriate. No shared mutable state is accessed without synchronisation.
+
+### Coordinate system
+
+The system uses the Crazyflie body frame: X = forward, Y = left, Z = up. All velocity setpoints follow this convention — positive `vy` moves the drone left, positive `vx` moves it forward. Sign correction is handled entirely at mapping time by the controller setup (via the `inverted` flag in `controller_mapping.json`); no inversion is applied in the state machine.
 
 ### Key libraries
 

@@ -160,6 +160,16 @@ def test_CS_020_four_roles_mapped():
     )
 
 
+def test_CS_022a_positive_direction_instructions():
+    """Positive direction for yaw_rate and velocity_y shall be LEFT; for altitude_rate and velocity_x shall be UP."""
+    from controller_setup.axis_mapper import _AXIS_ROLES
+    instructions = {role: instr.upper() for role, instr in _AXIS_ROLES}
+    assert "LEFT" in instructions["yaw_rate"], "yaw_rate instruction must reference LEFT as positive direction"
+    assert "LEFT" in instructions["velocity_y"], "velocity_y instruction must reference LEFT as positive direction"
+    assert "UP" in instructions["altitude_rate"], "altitude_rate instruction must reference UP as positive direction"
+    assert "UP" in instructions["velocity_x"], "velocity_x instruction must reference UP as positive direction"
+
+
 def test_CS_022_polarity_detection_logic():
     """Polarity (inversion) is set to True if the detected axis value is negative."""
     # From axis_mapper.py: detected_inverted = value < 0

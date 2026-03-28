@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Software | Controller Mapping Setup CLI |
-| Version | 1.4 |
+| Version | 1.6 |
 | Status | Approved |
 
 ---
@@ -101,7 +101,7 @@ crazymeow/
 **Key responsibilities:**
 - Iterate over the four axis roles in order: `altitude_rate`, `yaw_rate`, `velocity_x`, `velocity_y`.
 - For each role:
-  - Print instructions describing which physical stick to move (e.g., "Push the left stick UP for altitude rate, then release.").
+  - Print instructions describing which physical stick to move and direction for positive input (e.g., "Push the LEFT stick UP for altitude rate, then release." / "Push the LEFT stick LEFT for yaw rate, then release." / "Push the RIGHT stick UP for forward velocity, then release." / "Push the RIGHT stick LEFT for positive y velocity (left), then release.").
   - Poll pygame events in a loop, showing live axis values for all axes on screen.
   - Before prompting the user to move the stick, sample all axes to establish a per-axis baseline (resting position).
   - Detect which axis index has the largest absolute **delta from its baseline** above a threshold (0.3) — that is the selected axis. This correctly handles axes that rest at non-zero values (e.g. triggers resting at −1.0).
@@ -109,7 +109,7 @@ crazymeow/
   - Wait for the axis to return near zero before moving to the next role (to avoid bleed-over detection).
 - Return a mapping dict in the `controller_mapping.json` axes schema.
 
-**Inversion logic:** Each axis role has an expected positive direction (e.g., "push up" for `altitude_rate`). The pygame value at detection is compared against the expected direction. If the value is negative, `inverted` is set to `true` so that Crazypilot can always apply a consistent inversion at runtime.
+**Inversion logic:** Each axis role has an expected positive direction aligned with the system coordinate system (X: forward, Y: left, Z: up): UP for `altitude_rate`, LEFT for `yaw_rate`, UP for `velocity_x`, LEFT for `velocity_y`. The pygame value at detection is compared against the expected direction. If the displacement is negative (e.g. the user pushes LEFT but the raw axis value decreases), `inverted` is set to `true` so that Crazypilot applies a consistent sign flip at runtime.
 
 **Public interface:**
 - `map_axes(joystick: pygame.joystick.Joystick) -> dict` — returns the `"axes"` sub-dict.

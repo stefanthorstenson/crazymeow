@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Software | Controller Mapping Setup CLI |
-| Version | 1.4 |
+| Version | 1.6 |
 | Status | Approved |
 
 ---
@@ -43,8 +43,9 @@ The controller mapping setup CLI is a command-line tool for interactively config
 | ID | Requirement |
 |---|---|
 | CS-020 | The CLI shall guide the user through mapping the following four flight commands, one at a time: altitude rate, yaw rate, forward/backward velocity (x), and left/right velocity (y). |
-| CS-021 | For each flight command, the CLI shall instruct the user to move the relevant joystick axis and automatically detect which physical axis was moved. |
+| CS-021 | For each flight command, the CLI shall instruct the user to move the relevant joystick axis in the positive direction and automatically detect which physical axis was moved. |
 | CS-022 | The CLI shall detect and record the correct polarity (inversion) for each axis, based on the direction the user moves the joystick during the mapping procedure. |
+| CS-022a | The mapping procedure shall define positive direction per axis consistent with the system coordinate system (X: forward, Y: left, Z: up): UP for altitude_rate, LEFT for yaw_rate, UP for velocity_x, LEFT for velocity_y. |
 | CS-023 | The CLI shall display live axis values during mapping so the user can verify the mapping is correct. |
 
 ### Configuration Persistence
